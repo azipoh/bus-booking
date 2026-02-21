@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
@@ -23,19 +24,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/search" element={<SearchResults />} />
-          <Route path="/select-seat/:scheduleId" element={<SeatSelection />} />
-          <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/buses" element={<AdminBuses />} />
-          <Route path="/admin/bookings" element={<AdminBookings />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/select-seat/:scheduleId" element={<SeatSelection />} />
+            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/buses" element={<AdminBuses />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
