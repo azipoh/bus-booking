@@ -1,8 +1,8 @@
 /**
  * SeatMap component renders an interactive bus seat layout.
- * Passengers can click available seats to select/deselect them.
+ * Works with the new Seat type from scheduleHelpers.
  */
-import { Seat } from '@/data/mockData';
+import type { Seat } from '@/lib/scheduleHelpers';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -13,7 +13,6 @@ interface SeatMapProps {
 }
 
 const SeatMap = ({ seats, selectedSeats, onSeatClick }: SeatMapProps) => {
-  // Group seats by row
   const rows = seats.reduce<Record<number, Seat[]>>((acc, seat) => {
     if (!acc[seat.row]) acc[seat.row] = [];
     acc[seat.row].push(seat);
@@ -29,25 +28,19 @@ const SeatMap = ({ seats, selectedSeats, onSeatClick }: SeatMapProps) => {
 
   return (
     <div className="rounded-xl bg-muted/50 p-6">
-      {/* Bus front indicator */}
       <div className="mb-6 flex items-center justify-center">
         <div className="rounded-full bg-primary/10 px-6 py-1.5 text-sm font-medium text-primary">
           Front of Bus
         </div>
       </div>
-
-      {/* Steering wheel */}
       <div className="mb-4 flex justify-end pr-2">
         <div className="h-8 w-8 rounded-full border-2 border-muted-foreground/30" />
       </div>
-
-      {/* Seat grid */}
       <div className="space-y-2">
         {Object.entries(rows).map(([rowIndex, rowSeats]) => (
           <div key={rowIndex} className="flex items-center justify-center gap-2">
             {rowSeats.map((seat, colIndex) => (
               <div key={seat.id} className="flex items-center">
-                {/* Add aisle gap after 2nd seat */}
                 {colIndex === 2 && <div className="w-8" />}
                 <motion.button
                   whileHover={seat.status === 'available' ? { scale: 1.1 } : {}}
@@ -67,8 +60,6 @@ const SeatMap = ({ seats, selectedSeats, onSeatClick }: SeatMapProps) => {
           </div>
         ))}
       </div>
-
-      {/* Legend */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="h-4 w-4 rounded border-2 border-border bg-card" />

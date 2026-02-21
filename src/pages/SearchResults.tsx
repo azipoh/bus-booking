@@ -1,16 +1,19 @@
 /**
  * SearchResults page displays available buses for a given route and date.
- * Reads query params (from, to, date) and filters mock schedules.
+ * Queries the real database for schedules joined with buses and routes.
  */
 import { useSearchParams, Link } from 'react-router-dom';
-import { schedules } from '@/data/mockData';
-import BusCard from '@/components/BusCard';
 import SearchForm from '@/components/SearchForm';
-import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { ScheduleWithDetails } from '@/lib/scheduleHelpers';
+import { formatTime, calcDuration } from '@/lib/scheduleHelpers';
+import BusCard from '@/components/BusCard';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -20,28 +23,36 @@ const SearchResults = () => {
 
   const [sortBy, setSortBy] = useState<'price' | 'departure' | 'rating'>('price');
 
-  // Filter schedules matching the route (case-insensitive)
-  const results = useMemo(() => {
-    let filtered = schedules.filter(
-      (s) =>
-        s.route.source.toLowerCase() === from.toLowerCase() &&
-        s.route.destination.toLowerCase() === to.toLowerCase()
-    );
+  const { data: schedules = [], isLoading } = useQuery({
+    queryKey: ['schedules', from, to, date],
+    queryFn: async () => {
+      let query = supabase
+        .from('schedules')
+        .select('*, buses!inner(*), routes!inner(*)')
+        .eq('status', 'active');
 
-    // If no exact match, show all schedules as demo
-    if (filtered.length === 0) filtered = schedules;
+      if (from) query = query.ilike('routes.origin', from);
+      if (to) query = query.ilike('routes.destination', to);
+      if (date) {
+        query = query.gte('departure_time', `${date}T00:00:00`).lt('departure_time', `${date}T23:59:59`);
+      }
 
-    // Sort
-    return [...filtered].sort((a, b) => {
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data as unknown as ScheduleWithDetails[]) || [];
+    },
+  });
+
+  const sorted = useMemo(() => {
+    return [...schedules].sort((a, b) => {
       if (sortBy === 'price') return a.fare - b.fare;
-      if (sortBy === 'departure') return a.departureTime.localeCompare(b.departureTime);
-      return b.bus.rating - a.bus.rating;
+      if (sortBy === 'departure') return a.departure_time.localeCompare(b.departure_time);
+      return 0; // no rating in DB yet
     });
-  }, [from, to, sortBy]);
+  }, [schedules, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Search bar at top */}
       <div className="border-b border-border bg-card py-4">
         <div className="container mx-auto px-4">
           <SearchForm />
@@ -49,7 +60,6 @@ const SearchResults = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Header */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <Link to="/" className="mb-2 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
@@ -59,15 +69,14 @@ const SearchResults = () => {
               {from} → {to}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {date} • {results.length} buses found
+              {date} • {sorted.length} buses found
             </p>
           </div>
 
-          {/* Sort options */}
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Sort by:</span>
-            {(['price', 'departure', 'rating'] as const).map((s) => (
+            {(['price', 'departure'] as const).map((s) => (
               <Badge
                 key={s}
                 variant={sortBy === s ? 'default' : 'secondary'}
@@ -80,12 +89,21 @@ const SearchResults = () => {
           </div>
         </div>
 
-        {/* Results */}
-        <div className="space-y-4">
-          {results.map((schedule, i) => (
-            <BusCard key={schedule.id} schedule={schedule} index={i} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="py-20 text-center text-muted-foreground">
+            No buses found for this route and date.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sorted.map((schedule, i) => (
+              <BusCard key={schedule.id} schedule={schedule} index={i} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
