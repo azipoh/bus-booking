@@ -1,21 +1,25 @@
 /**
  * Navbar component for the bus booking system.
- * Provides navigation between passenger and admin sections.
+ * Shows auth state and role-based navigation.
  */
-import { Link, useLocation } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const passengerLinks = [
     { to: '/', label: 'Search', icon: Bus },
-    { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
+    ...(user ? [{ to: '/my-bookings', label: 'My Bookings', icon: Ticket }] : []),
   ];
 
   const adminLinks = [
@@ -24,7 +28,13 @@ const Navbar = () => {
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
   ];
 
-  const links = isAdmin ? adminLinks : passengerLinks;
+  const links = isAdminRoute ? adminLinks : passengerLinks;
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Logged out');
+    navigate('/');
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -34,20 +44,14 @@ const Navbar = () => {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Bus className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-heading text-xl font-bold text-foreground">
-            BusGo
-          </span>
+          <span className="font-heading text-xl font-bold text-foreground">BusGo</span>
         </Link>
 
         {/* Desktop links */}
         <div className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
             <Link key={link.to} to={link.to}>
-              <Button
-                variant={location.pathname === link.to ? 'secondary' : 'ghost'}
-                size="sm"
-                className="gap-2"
-              >
+              <Button variant={location.pathname === link.to ? 'secondary' : 'ghost'} size="sm" className="gap-2">
                 <link.icon className="h-4 w-4" />
                 {link.label}
               </Button>
@@ -57,31 +61,29 @@ const Navbar = () => {
 
         {/* Right side actions */}
         <div className="hidden items-center gap-2 md:flex">
-          {isAdmin ? (
-            <Link to="/">
+          {user && isAdmin && (
+            <Link to={isAdminRoute ? '/' : '/admin'}>
               <Button variant="outline" size="sm" className="gap-2">
-                <Bus className="h-4 w-4" /> Passenger View
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="gap-2">
-                <LayoutDashboard className="h-4 w-4" /> Admin
+                {isAdminRoute ? <Bus className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
+                {isAdminRoute ? 'Passenger View' : 'Admin'}
               </Button>
             </Link>
           )}
-          <Link to="/login">
-            <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-              <User className="h-4 w-4" /> Login
+          {!loading && (user ? (
+            <Button size="sm" variant="outline" className="gap-2" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" /> Logout
             </Button>
-          </Link>
+          ) : (
+            <Link to="/login">
+              <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <User className="h-4 w-4" /> Login
+              </Button>
+            </Link>
+          ))}
         </div>
 
         {/* Mobile menu toggle */}
-        <button
-          className="md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
+        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
@@ -98,22 +100,32 @@ const Navbar = () => {
             <div className="flex flex-col gap-1 p-4">
               {links.map((link) => (
                 <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)}>
-                  <Button
-                    variant={location.pathname === link.to ? 'secondary' : 'ghost'}
-                    className="w-full justify-start gap-2"
-                  >
+                  <Button variant={location.pathname === link.to ? 'secondary' : 'ghost'} className="w-full justify-start gap-2">
                     <link.icon className="h-4 w-4" />
                     {link.label}
                   </Button>
                 </Link>
               ))}
               <div className="mt-2 border-t border-border pt-2">
-                <Link to={isAdmin ? '/' : '/admin'} onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full gap-2">
-                    {isAdmin ? <Bus className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
-                    {isAdmin ? 'Passenger View' : 'Admin Panel'}
+                {user && isAdmin && (
+                  <Link to={isAdminRoute ? '/' : '/admin'} onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="mb-2 w-full gap-2">
+                      {isAdminRoute ? <Bus className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
+                      {isAdminRoute ? 'Passenger View' : 'Admin Panel'}
+                    </Button>
+                  </Link>
+                )}
+                {user ? (
+                  <Button variant="outline" className="w-full gap-2" onClick={() => { handleSignOut(); setMobileOpen(false); }}>
+                    <LogOut className="h-4 w-4" /> Logout
                   </Button>
-                </Link>
+                ) : (
+                  <Link to="/login" onClick={() => setMobileOpen(false)}>
+                    <Button className="w-full gap-2 bg-primary text-primary-foreground">
+                      <User className="h-4 w-4" /> Login
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>
