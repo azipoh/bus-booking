@@ -1,13 +1,15 @@
 /**
- * AdminBookings page displays all bookings for admin review.
- * Shows a table of all passenger bookings with filtering.
+ * AdminBookings page displays all bookings from the database.
  */
 import { useState } from 'react';
-import { sampleBookings, type Booking } from '@/data/mockData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { BookingWithDetails } from '@/lib/scheduleHelpers';
+import { formatTime, formatDate } from '@/lib/scheduleHelpers';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Download } from 'lucide-react';
+import { Search, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -21,32 +23,27 @@ const statusColors: Record<string, string> = {
 const AdminBookings = () => {
   const [search, setSearch] = useState('');
 
-  // Expand sample data for demo
-  const allBookings: Booking[] = [
-    ...sampleBookings,
-    {
-      id: 'bk4', passengerName: 'Jane Smith', passengerEmail: 'jane@example.com', passengerPhone: '+1987654321',
-      scheduleId: 's2', busName: 'StarCoach Premium', operator: 'Star Coaches',
-      source: 'New York', destination: 'Boston', date: '2026-02-20',
-      departureTime: '08:30', arrivalTime: '12:45', seatNumbers: ['D1'],
-      totalFare: 65, status: 'confirmed', bookingDate: '2026-02-19', pnr: 'PNR6721340',
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['admin-bookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*, schedules(*, buses(*), routes(*))')
+        .order('booked_at', { ascending: false });
+      if (error) throw error;
+      return (data as unknown as BookingWithDetails[]) || [];
     },
-    {
-      id: 'bk5', passengerName: 'Mike Johnson', passengerEmail: 'mike@example.com', passengerPhone: '+1122334455',
-      scheduleId: 's6', busName: 'BlueLine Express', operator: 'BlueLine Travels',
-      source: 'Seattle', destination: 'Portland', date: '2026-02-20',
-      departureTime: '10:00', arrivalTime: '13:15', seatNumbers: ['B3', 'B4'],
-      totalFare: 80, status: 'pending', bookingDate: '2026-02-19', pnr: 'PNR9182736',
-    },
-  ];
+  });
 
-  const filtered = allBookings.filter(
-    (b) =>
-      b.passengerName.toLowerCase().includes(search.toLowerCase()) ||
-      b.pnr.toLowerCase().includes(search.toLowerCase()) ||
-      b.source.toLowerCase().includes(search.toLowerCase()) ||
-      b.destination.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = bookings.filter((b) => {
+    const q = search.toLowerCase();
+    return (
+      b.passenger_name.toLowerCase().includes(q) ||
+      b.pnr.toLowerCase().includes(q) ||
+      b.schedules.routes.origin.toLowerCase().includes(q) ||
+      b.schedules.routes.destination.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,47 +69,47 @@ const AdminBookings = () => {
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="rounded-xl border border-border bg-card shadow-soft"
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>PNR</TableHead>
-                <TableHead>Passenger</TableHead>
-                <TableHead>Route</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Bus</TableHead>
-                <TableHead>Seats</TableHead>
-                <TableHead>Fare</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="font-heading font-semibold">{b.pnr}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{b.passengerName}</p>
-                      <p className="text-xs text-muted-foreground">{b.passengerEmail}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{b.source} → {b.destination}</TableCell>
-                  <TableCell>{b.date}</TableCell>
-                  <TableCell className="text-sm">{b.busName}</TableCell>
-                  <TableCell>{b.seatNumbers.join(', ')}</TableCell>
-                  <TableCell className="font-heading font-bold">${b.totalFare}</TableCell>
-                  <TableCell>
-                    <Badge className={`capitalize ${statusColors[b.status]}`}>{b.status}</Badge>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-border bg-card shadow-soft">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>PNR</TableHead>
+                  <TableHead>Passenger</TableHead>
+                  <TableHead>Route</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Bus</TableHead>
+                  <TableHead>Seats</TableHead>
+                  <TableHead>Fare</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </motion.div>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="font-heading font-semibold">{b.pnr}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{b.passenger_name}</p>
+                        <p className="text-xs text-muted-foreground">{b.passenger_email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{b.schedules.routes.origin} → {b.schedules.routes.destination}</TableCell>
+                    <TableCell>{formatDate(b.schedules.departure_time)}</TableCell>
+                    <TableCell className="text-sm">{b.schedules.buses.name}</TableCell>
+                    <TableCell>{b.seat_numbers.join(', ')}</TableCell>
+                    <TableCell className="font-heading font-bold">${b.total_fare}</TableCell>
+                    <TableCell>
+                      <Badge className={`capitalize ${statusColors[b.status] || ''}`}>{b.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </motion.div>
+        )}
       </div>
     </div>
   );

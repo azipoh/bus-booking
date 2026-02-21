@@ -2,23 +2,39 @@
  * SearchForm component - allows passengers to search for buses
  * by source, destination, and travel date.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRightLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cities } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
 const SearchForm = () => {
   const navigate = useNavigate();
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
-  const [date, setDate] = useState('2026-02-20');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
   const [showDestSuggestions, setShowDestSuggestions] = useState(false);
+  const [cities, setCities] = useState<string[]>([]);
 
-  // Filter cities based on input
+  // Fetch distinct cities from routes table
+  useEffect(() => {
+    const fetchCities = async () => {
+      const { data: routes } = await supabase.from('routes').select('origin, destination');
+      if (routes) {
+        const citySet = new Set<string>();
+        routes.forEach((r) => {
+          citySet.add(r.origin);
+          citySet.add(r.destination);
+        });
+        setCities(Array.from(citySet).sort());
+      }
+    };
+    fetchCities();
+  }, []);
+
   const filteredSourceCities = cities.filter(
     (c) => c.toLowerCase().includes(source.toLowerCase()) && c !== destination
   );
@@ -26,13 +42,11 @@ const SearchForm = () => {
     (c) => c.toLowerCase().includes(destination.toLowerCase()) && c !== source
   );
 
-  // Swap source and destination
   const handleSwap = () => {
     setSource(destination);
     setDestination(source);
   };
 
-  // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (source && destination && date) {
