@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut } from 'lucide-react';
+import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, Package, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +19,12 @@ const Navbar = () => {
 
   const passengerLinks = [
     { to: '/', label: 'Search', icon: Bus },
-    ...(user ? [{ to: '/my-bookings', label: 'My Bookings', icon: Ticket }] : []),
+    { to: '/send-parcel', label: 'Send Parcel', icon: Package },
+    { to: '/track-parcel', label: 'Track', icon: MapPin },
+    ...(user ? [
+      { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
+      { to: '/my-parcels', label: 'My Parcels', icon: Package },
+    ] : []),
   ];
 
   const adminLinks = [
@@ -39,7 +44,6 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Bus className="h-5 w-5 text-primary-foreground" />
@@ -47,7 +51,6 @@ const Navbar = () => {
           <span className="font-heading text-xl font-bold text-foreground">BusGo</span>
         </Link>
 
-        {/* Desktop links */}
         <div className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
             <Link key={link.to} to={link.to}>
@@ -59,7 +62,6 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Right side actions */}
         <div className="hidden items-center gap-2 md:flex">
           {user && isAdmin && (
             <Link to={isAdminRoute ? '/' : '/admin'}>
@@ -82,13 +84,11 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Mobile menu toggle */}
         <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div

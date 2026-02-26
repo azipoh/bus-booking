@@ -103,6 +103,71 @@ export type Database = {
         }
         Relationships: []
       }
+      parcels: {
+        Row: {
+          created_at: string
+          description: string
+          destination: string
+          fare: number
+          id: string
+          origin: string
+          recipient_name: string
+          recipient_phone: string
+          schedule_id: string | null
+          sender_id: string
+          sender_name: string
+          sender_phone: string
+          status: string
+          tracking_code: string
+          updated_at: string
+          weight_kg: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          destination: string
+          fare?: number
+          id?: string
+          origin: string
+          recipient_name: string
+          recipient_phone?: string
+          schedule_id?: string | null
+          sender_id: string
+          sender_name: string
+          sender_phone?: string
+          status?: string
+          tracking_code: string
+          updated_at?: string
+          weight_kg?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          destination?: string
+          fare?: number
+          id?: string
+          origin?: string
+          recipient_name?: string
+          recipient_phone?: string
+          schedule_id?: string | null
+          sender_id?: string
+          sender_name?: string
+          sender_phone?: string
+          status?: string
+          tracking_code?: string
+          updated_at?: string
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
