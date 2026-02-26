@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
 import { formatDate } from '@/lib/scheduleHelpers';
+import { formatCurrency } from '@/lib/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
 
   const statCards = [
     { label: 'Total Bookings', value: stats?.totalBookings ?? '—', sub: '', icon: Ticket, color: 'text-info' },
-    { label: 'Revenue', value: stats ? `$${stats.totalRevenue.toLocaleString()}` : '—', sub: '', icon: DollarSign, color: 'text-success' },
+    { label: 'Revenue', value: stats ? formatCurrency(stats.totalRevenue) : '—', sub: '', icon: DollarSign, color: 'text-success' },
     { label: 'Active Buses', value: stats?.activeBuses ?? '—', sub: '', icon: Bus, color: 'text-accent' },
     { label: 'Passengers', value: stats?.totalPassengers?.toLocaleString() ?? '—', sub: `${stats?.cancelRate || 0}% cancel rate`, icon: Users, color: 'text-primary' },
   ];
@@ -136,7 +137,7 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-heading font-bold text-foreground">${booking.total_fare}</p>
+                        <p className="font-heading font-bold text-foreground">{formatCurrency(Number(booking.total_fare))}</p>
                         <Badge className={`text-xs ${booking.status === 'confirmed' ? 'bg-success/10 text-success' : booking.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}>
                           {booking.status}
                         </Badge>

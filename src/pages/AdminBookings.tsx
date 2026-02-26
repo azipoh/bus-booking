@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
 import { formatTime, formatDate } from '@/lib/scheduleHelpers';
+import { formatCurrency } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -100,7 +101,7 @@ const AdminBookings = () => {
                     <TableCell>{formatDate(b.schedules.departure_time)}</TableCell>
                     <TableCell className="text-sm">{b.schedules.buses.name}</TableCell>
                     <TableCell>{b.seat_numbers.join(', ')}</TableCell>
-                    <TableCell className="font-heading font-bold">${b.total_fare}</TableCell>
+                    <TableCell className="font-heading font-bold">{formatCurrency(Number(b.total_fare))}</TableCell>
                     <TableCell>
                       <Badge className={`capitalize ${statusColors[b.status] || ''}`}>{b.status}</Badge>
                     </TableCell>

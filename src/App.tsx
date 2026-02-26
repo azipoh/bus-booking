@@ -10,6 +10,9 @@ import SearchResults from "./pages/SearchResults";
 import SeatSelection from "./pages/SeatSelection";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
+import SendParcel from "./pages/SendParcel";
+import TrackParcel from "./pages/TrackParcel";
+import MyParcels from "./pages/MyParcels";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBuses from "./pages/AdminBuses";
 import AdminBookings from "./pages/AdminBookings";
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/select-seat/:scheduleId" element={<SeatSelection />} />
             <Route path="/booking-confirmation" element={<BookingConfirmation />} />
             <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/send-parcel" element={<SendParcel />} />
+            <Route path="/track-parcel" element={<TrackParcel />} />
+            <Route path="/my-parcels" element={<MyParcels />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/buses" element={<AdminBuses />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />

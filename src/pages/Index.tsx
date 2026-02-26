@@ -4,25 +4,26 @@
  */
 import SearchForm from '@/components/SearchForm';
 import { motion } from 'framer-motion';
-import { Shield, Clock, MapPin, Users } from 'lucide-react';
+import { Shield, Clock, MapPin, Users, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/currency';
 import heroBus from '@/assets/hero-bus.jpg';
 
-// Feature highlights shown below the search form
 const features = [
   { icon: Shield, title: 'Secure Booking', desc: 'Encrypted payments & seat locking' },
   { icon: Clock, title: 'Real-time Availability', desc: 'Live seat status updates' },
-  { icon: MapPin, title: '500+ Routes', desc: 'Covering all major cities' },
-  { icon: Users, title: '1M+ Passengers', desc: 'Trusted by travelers nationwide' },
+  { icon: MapPin, title: 'All Major Cities', desc: 'Douala, Yaoundé, Bamenda & more' },
+  { icon: Package, title: 'Parcel Service', desc: 'Send & track parcels nationwide' },
 ];
 
-// Popular routes for quick search
 const popularRoutes = [
-  { from: 'New York', to: 'Boston', price: 45 },
-  { from: 'Los Angeles', to: 'San Francisco', price: 50 },
-  { from: 'Chicago', to: 'Indianapolis', price: 42 },
-  { from: 'Dallas', to: 'Houston', price: 25 },
-  { from: 'Seattle', to: 'Portland', price: 40 },
-  { from: 'New York', to: 'Philadelphia', price: 35 },
+  { from: 'Douala', to: 'Yaoundé', price: 5000 },
+  { from: 'Douala', to: 'Bamenda', price: 6000 },
+  { from: 'Douala', to: 'Buea', price: 2000 },
+  { from: 'Douala', to: 'Limbe', price: 2000 },
+  { from: 'Yaoundé', to: 'Bamenda', price: 7000 },
+  { from: 'Buea', to: 'Limbe', price: 1500 },
 ];
 
 const Index = () => {
@@ -30,7 +31,6 @@ const Index = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background image with overlay */}
         <div className="absolute inset-0">
           <img src={heroBus} alt="Bus on highway" className="h-full w-full object-cover" />
           <div className="absolute inset-0 gradient-hero opacity-85" />
@@ -49,11 +49,10 @@ const Index = () => {
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-primary-foreground/70">
               Skip the queues. Find buses, compare fares, pick your seat, and book
-              your ticket — all in seconds.
+              your ticket — all in seconds. Now with parcel delivery!
             </p>
           </motion.div>
 
-          {/* Search Form */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -61,6 +60,25 @@ const Index = () => {
             className="mx-auto max-w-5xl"
           >
             <SearchForm />
+          </motion.div>
+
+          {/* Send Parcel CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mx-auto mt-4 flex justify-center gap-3"
+          >
+            <Link to="/send-parcel">
+              <Button variant="outline" className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                <Package className="h-4 w-4" /> Send a Parcel
+              </Button>
+            </Link>
+            <Link to="/track-parcel">
+              <Button variant="outline" className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                <MapPin className="h-4 w-4" /> Track Parcel
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -95,7 +113,7 @@ const Index = () => {
           {popularRoutes.map((r, i) => (
             <motion.a
               key={`${r.from}-${r.to}`}
-              href={`/search?from=${encodeURIComponent(r.from)}&to=${encodeURIComponent(r.to)}&date=2026-02-20`}
+              href={`/search?from=${encodeURIComponent(r.from)}&to=${encodeURIComponent(r.to)}&date=${new Date().toISOString().split('T')[0]}`}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + i * 0.08 }}
@@ -113,17 +131,16 @@ const Index = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-heading text-lg font-bold text-accent">from ${r.price}</p>
+                <p className="font-heading text-lg font-bold text-accent">from {formatCurrency(r.price)}</p>
               </div>
             </motion.a>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border bg-card py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2026 BusGo — Online Bus Booking System. Academic Project.</p>
+          <p>© 2026 BusGo — Online Bus & Parcel Booking System. Cameroon.</p>
         </div>
       </footer>
     </div>

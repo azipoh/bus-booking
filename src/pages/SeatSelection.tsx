@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateSeatLayout, formatTime, calcDuration } from '@/lib/scheduleHelpers';
+import { formatCurrency } from '@/lib/currency';
 import type { ScheduleWithDetails, Seat } from '@/lib/scheduleHelpers';
 import SeatMap from '@/components/SeatMap';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,6 @@ const SeatSelection = () => {
   const [phone, setPhone] = useState('');
   const [isBooking, setIsBooking] = useState(false);
 
-  // Pre-fill from user profile
   useEffect(() => {
     if (user) {
       setEmail(user.email || '');
@@ -41,7 +41,6 @@ const SeatSelection = () => {
     }
   }, [user]);
 
-  // Fetch schedule with bus and route
   const { data: schedule, isLoading: scheduleLoading } = useQuery({
     queryKey: ['schedule', scheduleId],
     queryFn: async () => {
@@ -56,7 +55,6 @@ const SeatSelection = () => {
     enabled: !!scheduleId,
   });
 
-  // Fetch booked seat numbers for this schedule
   const { data: bookedSeats = [] } = useQuery({
     queryKey: ['booked-seats', scheduleId],
     queryFn: async () => {
@@ -70,7 +68,6 @@ const SeatSelection = () => {
     enabled: !!scheduleId,
   });
 
-  // Fetch active seat locks (not expired, not by current user)
   const { data: lockedSeats = [] } = useQuery({
     queryKey: ['seat-locks', scheduleId],
     queryFn: async () => {
@@ -87,7 +84,6 @@ const SeatSelection = () => {
     refetchInterval: 15000,
   });
 
-  // Generate seat layout
   const seats = useMemo(() => {
     if (!schedule) return [];
     return generateSeatLayout(
@@ -98,17 +94,14 @@ const SeatSelection = () => {
     );
   }, [schedule, bookedSeats, lockedSeats]);
 
-  // Lock seats mutation
   const lockSeatsMutation = useMutation({
     mutationFn: async (seatNumbers: number[]) => {
       if (!user) throw new Error('Must be logged in');
-      // Delete any existing locks by this user for this schedule
       await supabase
         .from('seat_locks')
         .delete()
         .eq('schedule_id', scheduleId!)
         .eq('locked_by', user.id);
-      // Insert new locks
       if (seatNumbers.length > 0) {
         const { error } = await supabase.from('seat_locks').insert(
           seatNumbers.map((num) => ({
@@ -123,7 +116,6 @@ const SeatSelection = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seat-locks', scheduleId] }),
   });
 
-  // Countdown timer
   useEffect(() => {
     if (selectedSeats.length > 0 && !lockActive) {
       setLockActive(true);
@@ -162,7 +154,6 @@ const SeatSelection = () => {
         ? [...prev, seatId]
         : (toast.warning('Maximum 6 seats per booking'), prev);
 
-      // Lock/unlock seats in DB
       const seatNumbers = next.map((id) => {
         const seat = seats.find((s) => s.id === id);
         return seat?.number || 0;
@@ -202,13 +193,11 @@ const SeatSelection = () => {
       });
       if (error) throw error;
 
-      // Update available seats
       await supabase
         .from('schedules')
         .update({ available_seats: (schedule?.available_seats || 0) - seatNumbers.length })
         .eq('id', scheduleId!);
 
-      // Clean up seat locks
       await supabase
         .from('seat_locks')
         .delete()
@@ -320,14 +309,14 @@ const SeatSelection = () => {
                     return (
                       <div key={seatId} className="flex items-center justify-between text-sm">
                         <span className="text-foreground">Seat {seat?.number} ({seat?.type})</span>
-                        <span className="font-semibold text-foreground">${seat?.price}</span>
+                        <span className="font-semibold text-foreground">{formatCurrency(seat?.price || 0)}</span>
                       </div>
                     );
                   })}
                   <div className="border-t border-border pt-2">
                     <div className="flex items-center justify-between font-heading font-bold">
                       <span>Total</span>
-                      <span className="text-xl text-accent">${totalFare}</span>
+                      <span className="text-xl text-accent">{formatCurrency(totalFare)}</span>
                     </div>
                   </div>
                 </div>
@@ -349,7 +338,7 @@ const SeatSelection = () => {
               className="w-full bg-accent py-6 font-heading text-base font-bold text-accent-foreground shadow-accent hover:bg-accent/90"
             >
               {isBooking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Confirm Booking — ${totalFare}
+              Confirm Booking — {formatCurrency(totalFare)}
             </Button>
           </div>
         </div>

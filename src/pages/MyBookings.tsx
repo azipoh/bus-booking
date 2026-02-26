@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
 import { formatTime, formatDate } from '@/lib/scheduleHelpers';
+import { formatCurrency } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -110,7 +111,7 @@ const MyBookings = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Fare</p>
-              <p className="font-heading font-bold text-accent">${booking.total_fare}</p>
+              <p className="font-heading font-bold text-accent">{formatCurrency(Number(booking.total_fare))}</p>
             </div>
           </div>
         </div>

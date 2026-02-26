@@ -5,6 +5,7 @@
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { CheckCircle2, Download, Bus, Calendar, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/currency';
 import { motion } from 'framer-motion';
 
 interface BookingState {
@@ -111,7 +112,7 @@ const BookingConfirmation = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Total Fare</p>
-                  <p className="font-heading text-lg font-bold text-accent">${booking.totalFare}</p>
+                  <p className="font-heading text-lg font-bold text-accent">{formatCurrency(booking.totalFare)}</p>
                 </div>
               </div>
             </div>
