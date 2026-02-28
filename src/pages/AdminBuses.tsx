@@ -1,5 +1,5 @@
 /**
- * AdminBuses page for managing the bus fleet from the database.
+ * AdminBuses page for managing the bus fleet with image upload.
  */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Bus as BusIcon, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bus as BusIcon, Loader2, Upload, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
@@ -25,6 +25,8 @@ const AdminBuses = () => {
   const [formRegNum, setFormRegNum] = useState('');
   const [formType, setFormType] = useState('AC');
   const [formSeats, setFormSeats] = useState('40');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: busList = [], isLoading } = useQuery({
     queryKey: ['admin-buses'],
@@ -35,22 +37,44 @@ const AdminBuses = () => {
     },
   });
 
+  const uploadImage = async (busId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+    const ext = imageFile.name.split('.').pop();
+    const path = `${busId}.${ext}`;
+    const { error } = await supabase.storage.from('bus-images').upload(path, imageFile, { upsert: true });
+    if (error) { toast.error('Image upload failed: ' + error.message); return null; }
+    const { data } = supabase.storage.from('bus-images').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const upsertMutation = useMutation({
     mutationFn: async (bus: Partial<DbBus> & { name: string; registration_number: string }) => {
+      setUploading(true);
       if (editingBus) {
-        const { error } = await supabase.from('buses').update(bus).eq('id', editingBus.id);
+        const imageUrl = await uploadImage(editingBus.id);
+        const updateData = { ...bus, ...(imageUrl ? { image_url: imageUrl } : {}) };
+        const { error } = await supabase.from('buses').update(updateData).eq('id', editingBus.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('buses').insert(bus);
+        // First insert to get the ID
+        const { data: inserted, error } = await supabase.from('buses').insert(bus).select().single();
         if (error) throw error;
+        if (imageFile && inserted) {
+          const imageUrl = await uploadImage(inserted.id);
+          if (imageUrl) {
+            await supabase.from('buses').update({ image_url: imageUrl } as any).eq('id', inserted.id);
+          }
+        }
       }
+      setUploading(false);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-buses'] });
       toast.success(editingBus ? 'Bus updated' : 'Bus added');
       setDialogOpen(false);
+      setImageFile(null);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => { toast.error(err.message); setUploading(false); },
   });
 
   const deleteMutation = useMutation({
@@ -67,12 +91,14 @@ const AdminBuses = () => {
   const openAdd = () => {
     setEditingBus(null);
     setFormName(''); setFormRegNum(''); setFormType('AC'); setFormSeats('40');
+    setImageFile(null);
     setDialogOpen(true);
   };
 
   const openEdit = (bus: DbBus) => {
     setEditingBus(bus);
     setFormName(bus.name); setFormRegNum(bus.registration_number); setFormType(bus.bus_type); setFormSeats(String(bus.total_seats));
+    setImageFile(null);
     setDialogOpen(true);
   };
 
@@ -84,6 +110,10 @@ const AdminBuses = () => {
       bus_type: formType,
       total_seats: parseInt(formSeats),
     });
+  };
+
+  const getBusImageUrl = (bus: DbBus): string | null => {
+    return (bus as any).image_url || null;
   };
 
   return (
@@ -114,11 +144,36 @@ const AdminBuses = () => {
                     <SelectItem value="AC Sleeper">AC Sleeper</SelectItem>
                     <SelectItem value="AC">AC</SelectItem>
                     <SelectItem value="Non-AC">Non-AC</SelectItem>
+                    <SelectItem value="VIP">VIP</SelectItem>
+                    <SelectItem value="Coaster">Coaster</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input type="number" placeholder="Total Seats" value={formSeats} onChange={(e) => setFormSeats(e.target.value)} />
-                <Button onClick={handleSave} disabled={upsertMutation.isPending} className="w-full bg-primary text-primary-foreground">
-                  {upsertMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                
+                {/* Image upload */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-foreground">Bus Photo</label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground">
+                      <Upload className="h-4 w-4" />
+                      {imageFile ? imageFile.name : 'Choose image...'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  </div>
+                  {editingBus && getBusImageUrl(editingBus) && !imageFile && (
+                    <div className="mt-2">
+                      <img src={getBusImageUrl(editingBus)!} alt="Current" className="h-20 w-32 rounded-lg object-cover" />
+                    </div>
+                  )}
+                </div>
+
+                <Button onClick={handleSave} disabled={upsertMutation.isPending || uploading} className="w-full bg-primary text-primary-foreground">
+                  {(upsertMutation.isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editingBus ? 'Update Bus' : 'Add Bus'}
                 </Button>
               </div>
@@ -132,7 +187,16 @@ const AdminBuses = () => {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {busList.map((bus, i) => (
               <motion.div key={bus.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Card className="shadow-soft">
+                <Card className="overflow-hidden shadow-soft">
+                  {getBusImageUrl(bus) ? (
+                    <div className="h-40 w-full">
+                      <img src={getBusImageUrl(bus)!} alt={bus.name} className="h-full w-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="flex h-40 w-full items-center justify-center bg-muted">
+                      <Image className="h-12 w-12 text-muted-foreground/30" />
+                    </div>
+                  )}
                   <CardContent className="p-5">
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2">

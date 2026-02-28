@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, Package, MapPin } from 'lucide-react';
+import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, Package, MapPin, Calendar, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +30,10 @@ const Navbar = () => {
   const adminLinks = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/admin/buses', label: 'Buses', icon: Bus },
+    { to: '/admin/schedules', label: 'Schedules', icon: Calendar },
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
+    { to: '/admin/parcels', label: 'Parcels', icon: Package },
+    { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   const links = isAdminRoute ? adminLinks : passengerLinks;

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
@@ -16,6 +17,9 @@ import MyParcels from "./pages/MyParcels";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBuses from "./pages/AdminBuses";
 import AdminBookings from "./pages/AdminBookings";
+import AdminSchedules from "./pages/AdminSchedules";
+import AdminParcels from "./pages/AdminParcels";
+import AdminSettings from "./pages/AdminSettings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -32,15 +36,18 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/select-seat/:scheduleId" element={<SeatSelection />} />
-            <Route path="/booking-confirmation" element={<BookingConfirmation />} />
-            <Route path="/my-bookings" element={<MyBookings />} />
-            <Route path="/send-parcel" element={<SendParcel />} />
+            <Route path="/select-seat/:scheduleId" element={<ProtectedRoute><SeatSelection /></ProtectedRoute>} />
+            <Route path="/booking-confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
+            <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+            <Route path="/send-parcel" element={<ProtectedRoute><SendParcel /></ProtectedRoute>} />
             <Route path="/track-parcel" element={<TrackParcel />} />
-            <Route path="/my-parcels" element={<MyParcels />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/buses" element={<AdminBuses />} />
-            <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/my-parcels" element={<ProtectedRoute><MyParcels /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminBuses /></ProtectedRoute>} />
+            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
+            <Route path="/admin/schedules" element={<ProtectedRoute requireAdmin><AdminSchedules /></ProtectedRoute>} />
+            <Route path="/admin/parcels" element={<ProtectedRoute requireAdmin><AdminParcels /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

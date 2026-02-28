@@ -73,6 +73,7 @@ export type Database = {
           bus_type: string
           created_at: string
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           registration_number: string
@@ -84,6 +85,7 @@ export type Database = {
           bus_type?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           registration_number: string
@@ -95,6 +97,7 @@ export type Database = {
           bus_type?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           registration_number?: string
