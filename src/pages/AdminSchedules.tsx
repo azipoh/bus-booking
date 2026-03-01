@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Calendar, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Loader2, Image } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -154,6 +154,19 @@ const AdminSchedules = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formBusId && (() => {
+                    const selectedBus = buses.find(b => b.id === formBusId);
+                    return selectedBus?.image_url ? (
+                      <div className="mt-2">
+                        <img src={selectedBus.image_url} alt={selectedBus.name} className="h-24 w-full rounded-lg object-cover" />
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex h-24 w-full items-center justify-center rounded-lg bg-muted">
+                        <Image className="h-8 w-8 text-muted-foreground/30" />
+                        <span className="ml-2 text-xs text-muted-foreground">No bus photo — upload one in Manage Buses</span>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">Route</label>
@@ -212,7 +225,16 @@ const AdminSchedules = () => {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {schedules.map((s, i) => (
               <motion.div key={s.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Card className="shadow-soft">
+                <Card className="overflow-hidden shadow-soft">
+                  {s.buses.image_url ? (
+                    <div className="h-32 w-full">
+                      <img src={s.buses.image_url} alt={s.buses.name} className="h-full w-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="flex h-32 w-full items-center justify-center bg-muted">
+                      <Image className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
+                  )}
                   <CardContent className="p-5">
                     <div className="mb-3 flex items-start justify-between">
                       <div>
