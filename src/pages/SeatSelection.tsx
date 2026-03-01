@@ -193,6 +193,17 @@ const SeatSelection = () => {
       });
       if (error) throw error;
 
+      // Award loyalty points (1 point per 100 FCFA)
+      const pointsEarned = Math.floor(totalFare / 100);
+      if (pointsEarned > 0) {
+        await supabase.from('loyalty_points').insert({
+          user_id: user.id,
+          points: pointsEarned,
+          description: `Booking ${pnr}: ${schedule?.routes.origin} → ${schedule?.routes.destination}`,
+          booking_id: undefined,
+        });
+      }
+
       await supabase
         .from('schedules')
         .update({ available_seats: (schedule?.available_seats || 0) - seatNumbers.length })
@@ -331,6 +342,20 @@ const SeatSelection = () => {
                 <Input type="tel" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-background" />
               </div>
             </div>
+
+            {/* No-refund policy notice */}
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-3">
+              <p className="text-xs font-medium text-warning">⚠️ No Refund Policy</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tickets cannot be refunded. They can only be rescheduled to another trip. Please confirm your details before booking.
+              </p>
+            </div>
+
+            {selectedSeats.length > 0 && totalFare > 0 && (
+              <p className="text-center text-xs text-muted-foreground">
+                🎁 You'll earn <strong className="text-accent">{Math.floor(totalFare / 100)} points</strong> for this booking!
+              </p>
+            )}
 
             <Button
               onClick={handleBook}
