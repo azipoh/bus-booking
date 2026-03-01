@@ -1,9 +1,9 @@
 /**
  * BookingConfirmation page displays after successful booking.
- * Shows PNR, trip details, and a simulated e-ticket.
+ * Shows PNR, trip details, download ticket, and no-refund policy.
  */
 import { useLocation, Link, Navigate } from 'react-router-dom';
-import { CheckCircle2, Download, Bus, Calendar, MapPin, Clock } from 'lucide-react';
+import { CheckCircle2, Download, Bus, Calendar, MapPin, Clock, AlertTriangle, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
 import { motion } from 'framer-motion';
@@ -23,12 +23,57 @@ interface BookingState {
   passengerEmail: string;
 }
 
+const generateTicketPDF = (booking: BookingState) => {
+  const ticketContent = `
+========================================
+          BUSGO E-TICKET
+========================================
+
+PNR: ${booking.pnr}
+
+PASSENGER: ${booking.passengerName}
+EMAIL: ${booking.passengerEmail}
+
+ROUTE: ${booking.source} → ${booking.destination}
+DATE: ${booking.date}
+DEPARTURE: ${booking.departureTime}
+ARRIVAL: ${booking.arrivalTime}
+
+BUS: ${booking.busName}
+SEAT(S): ${booking.seatNumbers.join(', ')}
+
+TOTAL FARE: ${formatCurrency(booking.totalFare)}
+
+========================================
+         IMPORTANT NOTICE
+========================================
+This ticket is NON-REFUNDABLE.
+It can only be RESCHEDULED to another trip.
+Please present this e-ticket at boarding.
+
+Thank you for choosing BusGo!
+© 2026 BusGo — Cameroon
+========================================
+`;
+
+  const blob = new Blob([ticketContent], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `BusGo-Ticket-${booking.pnr}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 const BookingConfirmation = () => {
   const location = useLocation();
   const booking = location.state as BookingState | null;
 
-  // Redirect if no booking data
   if (!booking) return <Navigate to="/" />;
+
+  const pointsEarned = Math.floor(booking.totalFare / 100);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -51,6 +96,19 @@ const BookingConfirmation = () => {
           <h1 className="font-heading text-3xl font-bold text-foreground">Booking Confirmed!</h1>
           <p className="mt-1 text-muted-foreground">Your e-ticket has been sent to {booking.passengerEmail}</p>
         </div>
+
+        {/* Points earned */}
+        {pointsEarned > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-accent/10 p-3 text-sm font-medium text-accent"
+          >
+            <Gift className="h-4 w-4" />
+            You earned {pointsEarned} loyalty points!
+          </motion.div>
+        )}
 
         {/* Ticket card */}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-elevated">
@@ -118,10 +176,21 @@ const BookingConfirmation = () => {
             </div>
           </div>
 
+          {/* No refund policy */}
+          <div className="mx-6 mb-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <div>
+              <p className="text-xs font-medium text-warning">No Refund Policy</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                This ticket is non-refundable. It can only be rescheduled to another trip.
+              </p>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex gap-3 border-t border-border px-6 py-4">
-            <Button variant="outline" className="flex-1 gap-2">
-              <Download className="h-4 w-4" /> Download PDF
+            <Button variant="outline" className="flex-1 gap-2" onClick={() => generateTicketPDF(booking)}>
+              <Download className="h-4 w-4" /> Download Ticket
             </Button>
             <Link to="/my-bookings" className="flex-1">
               <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">

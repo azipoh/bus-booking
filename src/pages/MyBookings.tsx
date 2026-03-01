@@ -1,5 +1,6 @@
 /**
  * MyBookings page shows the passenger's booking history from the database.
+ * Includes loyalty points balance, download ticket, and no-refund policy.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +11,7 @@ import { formatCurrency } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { MapPin, X, RefreshCw, Ticket, Loader2 } from 'lucide-react';
+import { MapPin, RefreshCw, Ticket, Loader2, Download, Gift, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
@@ -20,6 +21,44 @@ const statusColors: Record<string, string> = {
   completed: 'bg-info/10 text-info border-info/20',
   cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
   pending: 'bg-warning/10 text-warning border-warning/20',
+};
+
+const downloadTicket = (booking: BookingWithDetails) => {
+  const s = booking.schedules;
+  const content = `
+========================================
+          BUSGO E-TICKET
+========================================
+
+PNR: ${booking.pnr}
+PASSENGER: ${booking.passenger_name}
+
+ROUTE: ${s.routes.origin} → ${s.routes.destination}
+DATE: ${formatDate(s.departure_time)}
+DEPARTURE: ${formatTime(s.departure_time)}
+ARRIVAL: ${formatTime(s.arrival_time)}
+
+BUS: ${s.buses.name}
+SEAT(S): ${booking.seat_numbers.join(', ')}
+FARE: ${formatCurrency(Number(booking.total_fare))}
+
+STATUS: ${booking.status.toUpperCase()}
+
+========================================
+This ticket is NON-REFUNDABLE.
+It can only be RESCHEDULED.
+© 2026 BusGo — Cameroon
+========================================
+`;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `BusGo-${booking.pnr}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 const MyBookings = () => {
@@ -40,18 +79,17 @@ const MyBookings = () => {
     enabled: !!user,
   });
 
-  const cancelMutation = useMutation({
-    mutationFn: async (bookingId: string) => {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
+  const { data: totalPoints = 0 } = useQuery({
+    queryKey: ['loyalty-points', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('loyalty_points')
+        .select('points')
+        .eq('user_id', user!.id);
       if (error) throw error;
+      return (data || []).reduce((sum, r) => sum + r.points, 0);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
-      toast.success('Booking cancelled successfully.');
-    },
+    enabled: !!user,
   });
 
   if (authLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
@@ -117,19 +155,19 @@ const MyBookings = () => {
         </div>
 
         {booking.status === 'confirmed' && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Rescheduling coming soon.')}>
-              <RefreshCw className="h-3.5 w-3.5" /> Reschedule
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => cancelMutation.mutate(booking.id)}
-              disabled={cancelMutation.isPending}
-            >
-              <X className="h-3.5 w-3.5" /> Cancel
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => downloadTicket(booking)}>
+                <Download className="h-3.5 w-3.5" /> Download Ticket
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Rescheduling coming soon.')}>
+                <RefreshCw className="h-3.5 w-3.5" /> Reschedule
+              </Button>
+            </div>
+            <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              <AlertTriangle className="h-3 w-3 text-warning" />
+              Non-refundable — rescheduling only
+            </p>
           </div>
         )}
       </motion.div>
@@ -139,7 +177,16 @@ const MyBookings = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 font-heading text-3xl font-bold text-foreground">My Bookings</h1>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="font-heading text-3xl font-bold text-foreground">My Bookings</h1>
+          <div className="flex items-center gap-2 rounded-lg bg-accent/10 px-4 py-2">
+            <Gift className="h-5 w-5 text-accent" />
+            <div>
+              <p className="text-xs text-muted-foreground">Loyalty Points</p>
+              <p className="font-heading text-lg font-bold text-accent">{totalPoints}</p>
+            </div>
+          </div>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>

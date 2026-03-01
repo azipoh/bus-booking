@@ -118,7 +118,12 @@ const Login = () => {
               <Button type="submit" disabled={loading} className="w-full bg-primary font-heading font-semibold text-primary-foreground hover:bg-primary/90">
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
-              <p className="mt-4 text-center text-sm text-muted-foreground">
+              <div className="text-center">
+                <Link to="/forgot-password" className="text-sm font-medium text-accent hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+              <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
                 <button type="button" onClick={() => setIsRegister(true)} className="font-medium text-accent hover:underline">
                   Sign Up

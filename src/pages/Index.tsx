@@ -70,12 +70,12 @@ const Index = () => {
             className="mx-auto mt-4 flex justify-center gap-3"
           >
             <Link to="/send-parcel">
-              <Button variant="outline" className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button className="gap-2 bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
                 <Package className="h-4 w-4" /> Send a Parcel
               </Button>
             </Link>
             <Link to="/track-parcel">
-              <Button variant="outline" className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button className="gap-2 bg-secondary font-heading font-semibold text-secondary-foreground hover:bg-secondary/80">
                 <MapPin className="h-4 w-4" /> Track Parcel
               </Button>
             </Link>
