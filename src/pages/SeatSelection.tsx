@@ -11,6 +11,7 @@ import { generateSeatLayout, formatTime, calcDuration } from '@/lib/scheduleHelp
 import { formatCurrency } from '@/lib/currency';
 import type { ScheduleWithDetails, Seat } from '@/lib/scheduleHelpers';
 import SeatMap from '@/components/SeatMap';
+import PaymentModal from '@/components/PaymentModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Clock, Timer, AlertTriangle, Loader2 } from 'lucide-react';
