@@ -1,8 +1,9 @@
 /**
  * MyBookings page shows the passenger's booking history from the database.
- * Includes loyalty points balance, download ticket, and no-refund policy.
+ * Includes loyalty points balance, download ticket, reschedule, and no-refund policy.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
@@ -11,6 +12,7 @@ import { formatCurrency } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import RescheduleModal from '@/components/RescheduleModal';
 import { MapPin, RefreshCw, Ticket, Loader2, Download, Gift, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
