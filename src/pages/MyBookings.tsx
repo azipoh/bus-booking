@@ -216,6 +216,18 @@ const MyBookings = () => {
             ))}
           </Tabs>
         )}
+
+        {rescheduleBooking && (
+          <RescheduleModal
+            open={!!rescheduleBooking}
+            onClose={() => setRescheduleBooking(null)}
+            booking={rescheduleBooking}
+            onSuccess={() => {
+              setRescheduleBooking(null);
+              window.location.reload();
+            }}
+          />
+        )}
       </div>
     </div>
   );
