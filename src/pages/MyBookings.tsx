@@ -65,7 +65,7 @@ It can only be RESCHEDULED.
 
 const MyBookings = () => {
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
+  const [rescheduleBooking, setRescheduleBooking] = useState<BookingWithDetails | null>(null);
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['my-bookings', user?.id],
