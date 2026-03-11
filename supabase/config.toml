@@ -1,1 +1,4 @@
 project_id = "hxlurzfvlmamiwqmkhpd"
+
+[functions.deactivate-schedules]
+verify_jwt = false
