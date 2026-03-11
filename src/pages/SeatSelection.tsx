@@ -172,11 +172,14 @@ const SeatSelection = () => {
 
   const formatTimer = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const handleBook = async () => {
+  const handleInitiatePayment = () => {
     if (!user) { navigate('/login'); return; }
     if (!name || !email || !phone) { toast.error('Please fill in all passenger details.'); return; }
     if (selectedSeats.length === 0) { toast.error('Please select at least one seat.'); return; }
+    setShowPayment(true);
+  };
 
+  const handleBook = async () => {
     setIsBooking(true);
     try {
       const seatNumbers = selectedSeats.map((id) => seats.find((s) => s.id === id)?.number || 0);
