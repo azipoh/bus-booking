@@ -1,8 +1,9 @@
 /**
  * MyBookings page shows the passenger's booking history from the database.
- * Includes loyalty points balance, download ticket, and no-refund policy.
+ * Includes loyalty points balance, download ticket, reschedule, and no-refund policy.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
@@ -11,6 +12,7 @@ import { formatCurrency } from '@/lib/currency';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import RescheduleModal from '@/components/RescheduleModal';
 import { MapPin, RefreshCw, Ticket, Loader2, Download, Gift, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -63,7 +65,7 @@ It can only be RESCHEDULED.
 
 const MyBookings = () => {
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
+  const [rescheduleBooking, setRescheduleBooking] = useState<BookingWithDetails | null>(null);
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['my-bookings', user?.id],
@@ -160,7 +162,7 @@ const MyBookings = () => {
               <Button variant="outline" size="sm" className="gap-1" onClick={() => downloadTicket(booking)}>
                 <Download className="h-3.5 w-3.5" /> Download Ticket
               </Button>
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Rescheduling coming soon.')}>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => setRescheduleBooking(booking)}>
                 <RefreshCw className="h-3.5 w-3.5" /> Reschedule
               </Button>
             </div>
@@ -213,6 +215,18 @@ const MyBookings = () => {
               </TabsContent>
             ))}
           </Tabs>
+        )}
+
+        {rescheduleBooking && (
+          <RescheduleModal
+            open={!!rescheduleBooking}
+            onClose={() => setRescheduleBooking(null)}
+            booking={rescheduleBooking}
+            onSuccess={() => {
+              setRescheduleBooking(null);
+              window.location.reload();
+            }}
+          />
         )}
       </div>
     </div>

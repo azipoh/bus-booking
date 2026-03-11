@@ -11,6 +11,7 @@ import { generateSeatLayout, formatTime, calcDuration } from '@/lib/scheduleHelp
 import { formatCurrency } from '@/lib/currency';
 import type { ScheduleWithDetails, Seat } from '@/lib/scheduleHelpers';
 import SeatMap from '@/components/SeatMap';
+import PaymentModal from '@/components/PaymentModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Clock, Timer, AlertTriangle, Loader2 } from 'lucide-react';
@@ -32,6 +33,7 @@ const SeatSelection = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isBooking, setIsBooking] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -170,11 +172,14 @@ const SeatSelection = () => {
 
   const formatTimer = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const handleBook = async () => {
+  const handleInitiatePayment = () => {
     if (!user) { navigate('/login'); return; }
     if (!name || !email || !phone) { toast.error('Please fill in all passenger details.'); return; }
     if (selectedSeats.length === 0) { toast.error('Please select at least one seat.'); return; }
+    setShowPayment(true);
+  };
 
+  const handleBook = async () => {
     setIsBooking(true);
     try {
       const seatNumbers = selectedSeats.map((id) => seats.find((s) => s.id === id)?.number || 0);
@@ -358,13 +363,20 @@ const SeatSelection = () => {
             )}
 
             <Button
-              onClick={handleBook}
+              onClick={handleInitiatePayment}
               disabled={selectedSeats.length === 0 || !name || !email || !phone || isBooking}
               className="w-full bg-accent py-6 font-heading text-base font-bold text-accent-foreground shadow-accent hover:bg-accent/90"
             >
               {isBooking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Confirm Booking — {formatCurrency(totalFare)}
+              Pay & Book — {formatCurrency(totalFare)}
             </Button>
+
+            <PaymentModal
+              open={showPayment}
+              onClose={() => setShowPayment(false)}
+              onSuccess={handleBook}
+              amount={totalFare}
+            />
           </div>
         </div>
       </div>
