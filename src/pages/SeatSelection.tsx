@@ -33,6 +33,7 @@ const SeatSelection = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isBooking, setIsBooking] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     if (user) {
