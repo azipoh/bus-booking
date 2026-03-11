@@ -363,13 +363,20 @@ const SeatSelection = () => {
             )}
 
             <Button
-              onClick={handleBook}
+              onClick={handleInitiatePayment}
               disabled={selectedSeats.length === 0 || !name || !email || !phone || isBooking}
               className="w-full bg-accent py-6 font-heading text-base font-bold text-accent-foreground shadow-accent hover:bg-accent/90"
             >
               {isBooking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Confirm Booking — {formatCurrency(totalFare)}
+              Pay & Book — {formatCurrency(totalFare)}
             </Button>
+
+            <PaymentModal
+              open={showPayment}
+              onClose={() => setShowPayment(false)}
+              onSuccess={handleBook}
+              amount={totalFare}
+            />
           </div>
         </div>
       </div>
