@@ -26,10 +26,14 @@ const SearchResults = () => {
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['schedules', from, to, date],
     queryFn: async () => {
+      // Only show schedules departing at least 30 min from now
+      const minDeparture = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
       let query = supabase
         .from('schedules')
         .select('*, buses!inner(*), routes!inner(*)')
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .gt('departure_time', minDeparture);
 
       if (from) query = query.ilike('routes.origin', from);
       if (to) query = query.ilike('routes.destination', to);

@@ -162,7 +162,7 @@ const MyBookings = () => {
               <Button variant="outline" size="sm" className="gap-1" onClick={() => downloadTicket(booking)}>
                 <Download className="h-3.5 w-3.5" /> Download Ticket
               </Button>
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => toast.info('Rescheduling coming soon.')}>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => setRescheduleBooking(booking)}>
                 <RefreshCw className="h-3.5 w-3.5" /> Reschedule
               </Button>
             </div>
