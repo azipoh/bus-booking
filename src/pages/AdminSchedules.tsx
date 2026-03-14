@@ -35,6 +35,8 @@ const AdminSchedules = () => {
   const [formFare, setFormFare] = useState('');
   const [formSeats, setFormSeats] = useState('40');
   const [formStatus, setFormStatus] = useState('active');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['admin-schedules'],
