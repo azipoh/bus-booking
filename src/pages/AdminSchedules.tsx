@@ -122,6 +122,7 @@ const AdminSchedules = () => {
     setEditing(null);
     setFormBusId(''); setFormRouteId(''); setFormDeparture(''); setFormArrival('');
     setFormFare('5000'); setFormSeats('40'); setFormStatus('active');
+    setImageFile(null);
     setDialogOpen(true);
   };
 
