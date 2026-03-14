@@ -24,6 +24,7 @@ const Navbar = () => {
     ...(user ? [
       { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
       { to: '/my-parcels', label: 'My Parcels', icon: Package },
+      { to: '/profile', label: 'Profile', icon: User },
     ] : []),
   ];
 

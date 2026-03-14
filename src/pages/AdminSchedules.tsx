@@ -249,8 +249,8 @@ const AdminSchedules = () => {
                     </Select>
                   </div>
                 </div>
-                <Button onClick={handleSave} disabled={upsertMutation.isPending} className="w-full bg-primary text-primary-foreground">
-                  {upsertMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleSave} disabled={upsertMutation.isPending || uploading} className="w-full bg-primary text-primary-foreground">
+                  {(upsertMutation.isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editing ? 'Update Schedule' : 'Create Trip'}
                 </Button>
               </div>
