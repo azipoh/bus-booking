@@ -188,10 +188,24 @@ const AdminSchedules = () => {
                     ) : (
                       <div className="mt-2 flex h-24 w-full items-center justify-center rounded-lg bg-muted">
                         <Image className="h-8 w-8 text-muted-foreground/30" />
-                        <span className="ml-2 text-xs text-muted-foreground">No bus photo — upload one in Manage Buses</span>
+                        <span className="ml-2 text-xs text-muted-foreground">No photo yet</span>
                       </div>
                     );
                   })()}
+                  {formBusId && (
+                    <div className="mt-2">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-muted px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground">
+                        <Upload className="h-4 w-4" />
+                        {imageFile ? imageFile.name : 'Upload bus photo'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">Route</label>
