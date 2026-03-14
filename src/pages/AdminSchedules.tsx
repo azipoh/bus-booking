@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Calendar, Loader2, Image } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Loader2, Image, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 

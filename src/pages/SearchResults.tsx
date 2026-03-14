@@ -35,8 +35,8 @@ const SearchResults = () => {
         .eq('status', 'active')
         .gt('departure_time', minDeparture);
 
-      if (from) query = query.ilike('routes.origin', from);
-      if (to) query = query.ilike('routes.destination', to);
+      if (from) query = query.ilike('routes.origin', `%${from}%`);
+      if (to) query = query.ilike('routes.destination', `%${to}%`);
       if (date) {
         query = query.gte('departure_time', `${date}T00:00:00`).lt('departure_time', `${date}T23:59:59`);
       }
