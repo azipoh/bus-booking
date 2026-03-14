@@ -66,8 +66,28 @@ const AdminSchedules = () => {
     },
   });
 
+  const uploadBusImage = async (busId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+    const ext = imageFile.name.split('.').pop();
+    const path = `${busId}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('bus-images').upload(path, imageFile, { upsert: true });
+    if (error) { toast.error('Image upload failed: ' + error.message); return null; }
+    const { data } = supabase.storage.from('bus-images').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const upsertMutation = useMutation({
     mutationFn: async (schedule: Partial<DbSchedule>) => {
+      // Upload image for the selected bus if provided
+      if (imageFile && formBusId) {
+        setUploading(true);
+        const imageUrl = await uploadBusImage(formBusId);
+        if (imageUrl) {
+          await supabase.from('buses').update({ image_url: imageUrl } as any).eq('id', formBusId);
+        }
+        setUploading(false);
+      }
+
       if (editing) {
         const { error } = await supabase.from('schedules').update(schedule).eq('id', editing.id);
         if (error) throw error;
@@ -78,8 +98,10 @@ const AdminSchedules = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-schedules'] });
+      qc.invalidateQueries({ queryKey: ['buses-list'] });
       toast.success(editing ? 'Schedule updated' : 'Schedule created');
       setDialogOpen(false);
+      setImageFile(null);
     },
     onError: (err: any) => toast.error(err.message),
   });
