@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Calendar, Loader2, Image } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, Loader2, Image, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -35,6 +35,8 @@ const AdminSchedules = () => {
   const [formFare, setFormFare] = useState('');
   const [formSeats, setFormSeats] = useState('40');
   const [formStatus, setFormStatus] = useState('active');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['admin-schedules'],
@@ -64,8 +66,28 @@ const AdminSchedules = () => {
     },
   });
 
+  const uploadBusImage = async (busId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+    const ext = imageFile.name.split('.').pop();
+    const path = `${busId}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('bus-images').upload(path, imageFile, { upsert: true });
+    if (error) { toast.error('Image upload failed: ' + error.message); return null; }
+    const { data } = supabase.storage.from('bus-images').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   const upsertMutation = useMutation({
     mutationFn: async (schedule: Partial<DbSchedule>) => {
+      // Upload image for the selected bus if provided
+      if (imageFile && formBusId) {
+        setUploading(true);
+        const imageUrl = await uploadBusImage(formBusId);
+        if (imageUrl) {
+          await supabase.from('buses').update({ image_url: imageUrl } as any).eq('id', formBusId);
+        }
+        setUploading(false);
+      }
+
       if (editing) {
         const { error } = await supabase.from('schedules').update(schedule).eq('id', editing.id);
         if (error) throw error;
@@ -76,8 +98,10 @@ const AdminSchedules = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-schedules'] });
+      qc.invalidateQueries({ queryKey: ['buses-list'] });
       toast.success(editing ? 'Schedule updated' : 'Schedule created');
       setDialogOpen(false);
+      setImageFile(null);
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -98,6 +122,7 @@ const AdminSchedules = () => {
     setEditing(null);
     setFormBusId(''); setFormRouteId(''); setFormDeparture(''); setFormArrival('');
     setFormFare('5000'); setFormSeats('40'); setFormStatus('active');
+    setImageFile(null);
     setDialogOpen(true);
   };
 
@@ -163,10 +188,24 @@ const AdminSchedules = () => {
                     ) : (
                       <div className="mt-2 flex h-24 w-full items-center justify-center rounded-lg bg-muted">
                         <Image className="h-8 w-8 text-muted-foreground/30" />
-                        <span className="ml-2 text-xs text-muted-foreground">No bus photo — upload one in Manage Buses</span>
+                        <span className="ml-2 text-xs text-muted-foreground">No photo yet</span>
                       </div>
                     );
                   })()}
+                  {formBusId && (
+                    <div className="mt-2">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-muted px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground">
+                        <Upload className="h-4 w-4" />
+                        {imageFile ? imageFile.name : 'Upload bus photo'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">Route</label>
@@ -210,8 +249,8 @@ const AdminSchedules = () => {
                     </Select>
                   </div>
                 </div>
-                <Button onClick={handleSave} disabled={upsertMutation.isPending} className="w-full bg-primary text-primary-foreground">
-                  {upsertMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleSave} disabled={upsertMutation.isPending || uploading} className="w-full bg-primary text-primary-foreground">
+                  {(upsertMutation.isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editing ? 'Update Schedule' : 'Create Trip'}
                 </Button>
               </div>
