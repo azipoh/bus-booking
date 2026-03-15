@@ -220,6 +220,20 @@ const SeatSelection = () => {
         .eq('schedule_id', scheduleId!)
         .eq('locked_by', user.id);
 
+      // Send SMS notification
+      if (phone) {
+        try {
+          await supabase.functions.invoke('send-sms', {
+            body: {
+              to: phone,
+              message: `BusGo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`,
+            },
+          });
+        } catch (smsErr) {
+          console.warn('SMS notification failed:', smsErr);
+        }
+      }
+
       navigate('/booking-confirmation', {
         state: {
           pnr,
