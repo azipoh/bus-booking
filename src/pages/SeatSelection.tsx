@@ -220,20 +220,26 @@ const SeatSelection = () => {
         .eq('schedule_id', scheduleId!)
         .eq('locked_by', user.id);
 
-      // Send SMS notification
+      // Send SMS notification with in-app fallback
+      const bookingMessage = `BusGo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`;
+      let smsSent = false;
       if (phone) {
         try {
-          // Format phone to E.164 (add +237 country code if not present)
           const formattedPhone = phone.startsWith('+') ? phone : `+237${phone.replace(/^0+/, '')}`;
-          await supabase.functions.invoke('send-sms', {
-            body: {
-              to: formattedPhone,
-              message: `BusGo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`,
-            },
+          const { data: smsData } = await supabase.functions.invoke('send-sms', {
+            body: { to: formattedPhone, message: bookingMessage },
           });
+          smsSent = smsData?.success && !smsData?.simulated;
         } catch (smsErr) {
           console.warn('SMS notification failed:', smsErr);
         }
+      }
+      // In-app notification fallback
+      if (!smsSent) {
+        toast.success(`Booking Confirmed! PNR: ${pnr}`, {
+          description: `${schedule?.routes.origin} → ${schedule?.routes.destination} · Seats: ${seatNumbers.join(', ')} · ${formatCurrency(totalFare)}`,
+          duration: 10000,
+        });
       }
 
       navigate('/booking-confirmation', {
