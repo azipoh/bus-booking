@@ -223,9 +223,11 @@ const SeatSelection = () => {
       // Send SMS notification
       if (phone) {
         try {
+          // Format phone to E.164 (add +237 country code if not present)
+          const formattedPhone = phone.startsWith('+') ? phone : `+237${phone.replace(/^0+/, '')}`;
           await supabase.functions.invoke('send-sms', {
             body: {
-              to: phone,
+              to: formattedPhone,
               message: `BusGo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`,
             },
           });
