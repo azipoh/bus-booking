@@ -2,8 +2,8 @@
  * Login page with tabs for passenger and admin login.
  * Also includes a registration form with real authentication.
  */
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Bus, Mail, Lock, User, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,14 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, signUp } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(location.pathname === '/signup');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setIsRegister(location.pathname === '/signup');
+  }, [location.pathname]);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -75,6 +80,24 @@ const Login = () => {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elevated">
+          {/* Sign In / Sign Up tabs */}
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className={`rounded-md py-2 text-sm font-semibold transition-colors ${!isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className={`rounded-md py-2 text-sm font-semibold transition-colors ${isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Sign Up
+            </button>
+          </div>
+
           {isRegister ? (
             // Registration form
             <form onSubmit={handleRegister} className="space-y-4">
@@ -99,7 +122,7 @@ const Login = () => {
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
-                <button type="button" onClick={() => setIsRegister(false)} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/login')} className="font-medium text-accent hover:underline">
                   Sign In
                 </button>
               </p>
@@ -125,7 +148,7 @@ const Login = () => {
               </div>
               <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <button type="button" onClick={() => setIsRegister(true)} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/signup')} className="font-medium text-accent hover:underline">
                   Sign Up
                 </button>
               </p>

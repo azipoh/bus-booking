@@ -52,6 +52,7 @@ const App = () => (
             <Route path="/admin/parcels" element={<ProtectedRoute requireAdmin><AdminParcels /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
