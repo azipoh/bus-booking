@@ -75,8 +75,8 @@ const SendParcel = () => {
 
       if (error) throw error;
 
-      toast.success('Parcel registered successfully!');
-      navigate('/my-parcels');
+      toast.success(`Parcel registered! Tracking code: ${trackingCode}`, { duration: 12000 });
+      navigate('/admin/parcels');
     } catch (err: any) {
       toast.error(err.message || 'Failed to register parcel.');
     } finally {
