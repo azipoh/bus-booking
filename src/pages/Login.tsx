@@ -148,7 +148,7 @@ const Login = () => {
               </div>
               <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <button type="button" onClick={() => setIsRegister(true)} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/signup')} className="font-medium text-accent hover:underline">
                   Sign Up
                 </button>
               </p>
