@@ -80,6 +80,24 @@ const Login = () => {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elevated">
+          {/* Sign In / Sign Up tabs */}
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className={`rounded-md py-2 text-sm font-semibold transition-colors ${!isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className={`rounded-md py-2 text-sm font-semibold transition-colors ${isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Sign Up
+            </button>
+          </div>
+
           {isRegister ? (
             // Registration form
             <form onSubmit={handleRegister} className="space-y-4">
