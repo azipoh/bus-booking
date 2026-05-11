@@ -42,9 +42,9 @@ const App = () => (
             <Route path="/select-seat/:scheduleId" element={<ProtectedRoute><SeatSelection /></ProtectedRoute>} />
             <Route path="/booking-confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-            <Route path="/send-parcel" element={<ProtectedRoute><SendParcel /></ProtectedRoute>} />
             <Route path="/track-parcel" element={<TrackParcel />} />
-            <Route path="/my-parcels" element={<ProtectedRoute><MyParcels /></ProtectedRoute>} />
+            <Route path="/admin/send-parcel" element={<ProtectedRoute requireAdmin><SendParcel /></ProtectedRoute>} />
+            <Route path="/admin/my-parcels" element={<ProtectedRoute requireAdmin><MyParcels /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminBuses /></ProtectedRoute>} />
             <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />

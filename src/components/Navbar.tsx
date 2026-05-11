@@ -19,11 +19,9 @@ const Navbar = () => {
 
   const passengerLinks = [
     { to: '/', label: 'Search', icon: Bus },
-    { to: '/send-parcel', label: 'Send Parcel', icon: Package },
-    { to: '/track-parcel', label: 'Track', icon: MapPin },
+    { to: '/track-parcel', label: 'Track Parcel', icon: MapPin },
     ...(user ? [
       { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
-      { to: '/my-parcels', label: 'My Parcels', icon: Package },
       { to: '/profile', label: 'Profile', icon: User },
     ] : []),
   ];
@@ -34,6 +32,7 @@ const Navbar = () => {
     { to: '/admin/schedules', label: 'Schedules', icon: Calendar },
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
     { to: '/admin/parcels', label: 'Parcels', icon: Package },
+    { to: '/admin/send-parcel', label: 'Register Parcel', icon: Package },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
