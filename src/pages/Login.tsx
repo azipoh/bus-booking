@@ -14,9 +14,14 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, signUp } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(location.pathname === '/signup');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setIsRegister(location.pathname === '/signup');
+  }, [location.pathname]);
 
   // Form state
   const [email, setEmail] = useState('');
