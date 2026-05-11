@@ -122,7 +122,7 @@ const Login = () => {
               </Button>
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
-                <button type="button" onClick={() => setIsRegister(false)} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/login')} className="font-medium text-accent hover:underline">
                   Sign In
                 </button>
               </p>
