@@ -47,8 +47,13 @@ const SendParcel = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!senderName || !senderPhone || !recipientName || !recipientPhone || !origin || !destination || !weight) {
-      toast.error('Please fill in all required fields.');
+    if (!senderName || !senderPhone || !senderEmail || !recipientName || !recipientPhone || !recipientEmail || !origin || !destination || !weight) {
+      toast.error('Please fill in all required fields, including sender and recipient emails.');
+      return;
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(senderEmail) || !emailRe.test(recipientEmail)) {
+      toast.error('Please enter valid email addresses for sender and recipient.');
       return;
     }
     if (origin === destination) {
@@ -65,8 +70,10 @@ const SendParcel = () => {
         tracking_code: trackingCode,
         sender_name: senderName,
         sender_phone: senderPhone,
+        sender_email: senderEmail,
         recipient_name: recipientName,
         recipient_phone: recipientPhone,
+        recipient_email: recipientEmail,
         origin,
         destination,
         description,
