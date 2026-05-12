@@ -1,0 +1,3 @@
+ALTER TABLE public.parcels
+  ADD COLUMN IF NOT EXISTS sender_email TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS recipient_email TEXT NOT NULL DEFAULT '';

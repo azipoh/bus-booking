@@ -149,9 +149,11 @@ export type Database = {
           fare: number
           id: string
           origin: string
+          recipient_email: string
           recipient_name: string
           recipient_phone: string
           schedule_id: string | null
+          sender_email: string
           sender_id: string
           sender_name: string
           sender_phone: string
@@ -167,9 +169,11 @@ export type Database = {
           fare?: number
           id?: string
           origin: string
+          recipient_email?: string
           recipient_name: string
           recipient_phone?: string
           schedule_id?: string | null
+          sender_email?: string
           sender_id: string
           sender_name: string
           sender_phone?: string
@@ -185,9 +189,11 @@ export type Database = {
           fare?: number
           id?: string
           origin?: string
+          recipient_email?: string
           recipient_name?: string
           recipient_phone?: string
           schedule_id?: string | null
+          sender_email?: string
           sender_id?: string
           sender_name?: string
           sender_phone?: string
