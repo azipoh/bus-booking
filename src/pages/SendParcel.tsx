@@ -31,8 +31,10 @@ const SendParcel = () => {
 
   const [senderName, setSenderName] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [description, setDescription] = useState('');
@@ -45,8 +47,13 @@ const SendParcel = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!senderName || !senderPhone || !recipientName || !recipientPhone || !origin || !destination || !weight) {
-      toast.error('Please fill in all required fields.');
+    if (!senderName || !senderPhone || !senderEmail || !recipientName || !recipientPhone || !recipientEmail || !origin || !destination || !weight) {
+      toast.error('Please fill in all required fields, including sender and recipient emails.');
+      return;
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(senderEmail) || !emailRe.test(recipientEmail)) {
+      toast.error('Please enter valid email addresses for sender and recipient.');
       return;
     }
     if (origin === destination) {
@@ -63,8 +70,10 @@ const SendParcel = () => {
         tracking_code: trackingCode,
         sender_name: senderName,
         sender_phone: senderPhone,
+        sender_email: senderEmail,
         recipient_name: recipientName,
         recipient_phone: recipientPhone,
+        recipient_email: recipientEmail,
         origin,
         destination,
         description,
@@ -105,6 +114,7 @@ const SendParcel = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input placeholder="Sender Name *" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="bg-background" />
                 <Input type="tel" placeholder="Sender Phone *" value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)} className="bg-background" />
+                <Input type="email" placeholder="Sender Email *" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} className="bg-background sm:col-span-2" />
               </div>
             </div>
 
@@ -114,6 +124,7 @@ const SendParcel = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input placeholder="Recipient Name *" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="bg-background" />
                 <Input type="tel" placeholder="Recipient Phone *" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className="bg-background" />
+                <Input type="email" placeholder="Recipient Email *" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} className="bg-background sm:col-span-2" />
               </div>
             </div>
 
