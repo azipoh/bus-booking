@@ -58,103 +58,127 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,hsl(var(--primary)/0.08),transparent_60%)]" />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="w-full max-w-md"
       >
         {/* Logo */}
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-elevated ring-4 ring-primary/10">
               <Bus className="h-7 w-7 text-primary-foreground" />
             </div>
           </Link>
-          <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
-            {isRegister ? 'Create Account' : 'Welcome Back'}
+          <h1 className="mt-5 font-heading text-3xl font-bold tracking-tight text-foreground">
+            {isRegister ? 'Create your account' : 'Welcome back'}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {isRegister ? 'Sign up to start booking' : 'Sign in to your account'}
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isRegister ? 'Join BusGo and start booking in minutes' : 'Sign in to continue your journey'}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-elevated">
+        <div className="rounded-2xl border border-border/70 bg-card/80 p-7 shadow-elevated backdrop-blur-sm">
           {/* Sign In / Sign Up tabs */}
-          <div className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className={`rounded-md py-2 text-sm font-semibold transition-colors ${!isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition-all ${!isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Sign In
             </button>
             <button
               type="button"
               onClick={() => navigate('/signup')}
-              className={`rounded-md py-2 text-sm font-semibold transition-colors ${isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-lg py-2.5 text-sm font-semibold transition-all ${isRegister ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
             >
               Sign Up
             </button>
           </div>
 
           {isRegister ? (
-            // Registration form
-            <form onSubmit={handleRegister} className="space-y-4">
+            <motion.form
+              key="register"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              onSubmit={handleRegister}
+              className="space-y-3.5"
+            >
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Full Name" className="bg-background pl-10" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Full Name" className="h-11 bg-background pl-10" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </div>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="email" placeholder="Email" className="bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="email" placeholder="Email" className="h-11 bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="tel" placeholder="Phone" className="bg-background pl-10" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="tel" placeholder="Phone" className="h-11 bg-background pl-10" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="password" placeholder="Password (min 6 chars)" className="bg-background pl-10" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="password" placeholder="Password (min 6 chars)" className="h-11 bg-background pl-10" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
-              <Button type="submit" disabled={loading} className="w-full bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
-                {loading ? 'Creating...' : 'Create Account'}
+              <Button type="submit" disabled={loading} className="h-11 w-full bg-accent font-heading font-semibold text-accent-foreground shadow-accent transition-transform hover:bg-accent/90 active:scale-[0.99]">
+                {loading ? 'Creating…' : 'Create Account'}
               </Button>
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="pt-1 text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
-                <button type="button" onClick={() => navigate('/login')} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/login')} className="font-semibold text-accent hover:underline">
                   Sign In
                 </button>
               </p>
-            </form>
+            </motion.form>
           ) : (
-            // Login form (single form, no tabs - role is determined server-side)
-            <form onSubmit={handleLogin} className="space-y-4">
+            <motion.form
+              key="login"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              onSubmit={handleLogin}
+              className="space-y-3.5"
+            >
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="email" placeholder="Email" className="bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="email" placeholder="Email" className="h-11 bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input type="password" placeholder="Password" className="bg-background pl-10" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input type="password" placeholder="Password" className="h-11 bg-background pl-10" required value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
-              <Button type="submit" disabled={loading} className="w-full bg-primary font-heading font-semibold text-primary-foreground hover:bg-primary/90">
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
-              <div className="text-center">
-                <Link to="/forgot-password" className="text-sm font-medium text-accent hover:underline">
-                  Forgot Password?
+              <div className="flex justify-end">
+                <Link to="/forgot-password" className="text-xs font-medium text-accent hover:underline">
+                  Forgot password?
                 </Link>
               </div>
-              <p className="text-center text-sm text-muted-foreground">
+              <Button type="submit" disabled={loading} className="h-11 w-full bg-primary font-heading font-semibold text-primary-foreground shadow-soft transition-transform hover:bg-primary/90 active:scale-[0.99]">
+                {loading ? 'Signing in…' : 'Sign In'}
+              </Button>
+              <p className="pt-1 text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <button type="button" onClick={() => navigate('/signup')} className="font-medium text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/signup')} className="font-semibold text-accent hover:underline">
                   Sign Up
                 </button>
               </p>
-            </form>
+            </motion.form>
           )}
         </div>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          By continuing, you agree to BusGo's Terms & Privacy Policy.
+        </p>
       </motion.div>
     </div>
   );
