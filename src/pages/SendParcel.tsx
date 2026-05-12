@@ -114,6 +114,7 @@ const SendParcel = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input placeholder="Sender Name *" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="bg-background" />
                 <Input type="tel" placeholder="Sender Phone *" value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)} className="bg-background" />
+                <Input type="email" placeholder="Sender Email *" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} className="bg-background sm:col-span-2" />
               </div>
             </div>
 
@@ -123,6 +124,7 @@ const SendParcel = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input placeholder="Recipient Name *" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} className="bg-background" />
                 <Input type="tel" placeholder="Recipient Phone *" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} className="bg-background" />
+                <Input type="email" placeholder="Recipient Email *" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} className="bg-background sm:col-span-2" />
               </div>
             </div>
 
