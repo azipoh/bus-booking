@@ -164,7 +164,7 @@ const AdminSchedules = () => {
                 <Plus className="h-4 w-4" /> New Trip
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-heading">{editing ? 'Edit Schedule' : 'Create New Trip'}</DialogTitle>
               </DialogHeader>
