@@ -2,15 +2,27 @@
  * Login page with tabs for passenger and admin login.
  * Also includes a registration form with real authentication.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Bus, Mail, Lock, User, Phone } from 'lucide-react';
+import { Bus, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[0-9\s-]{7,20}$/;
+
+type Errors = Partial<Record<'email' | 'password' | 'fullName' | 'phone', string>>;
+
+const FieldError = ({ message }: { message?: string }) =>
+  message ? (
+    <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
+      <AlertCircle className="h-3 w-3" />
+      {message}
+    </p>
+  ) : null;
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,9 +30,13 @@ const Login = () => {
   const { signIn, signUp } = useAuth();
   const [isRegister, setIsRegister] = useState(location.pathname === '/signup');
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setIsRegister(location.pathname === '/signup');
+    setTouched({});
+    setSubmitted(false);
   }, [location.pathname]);
 
   // Form state
@@ -29,9 +45,33 @@ const Login = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
 
+  const errors: Errors = useMemo(() => {
+    const e: Errors = {};
+    if (!email.trim()) e.email = 'Email is required';
+    else if (!EMAIL_RE.test(email.trim())) e.email = 'Enter a valid email address';
+
+    if (!password) e.password = 'Password is required';
+    else if (isRegister && password.length < 6) e.password = 'Password must be at least 6 characters';
+
+    if (isRegister) {
+      if (!fullName.trim()) e.fullName = 'Full name is required';
+      else if (fullName.trim().length < 2) e.fullName = 'Name must be at least 2 characters';
+
+      if (phone && !PHONE_RE.test(phone.trim())) e.phone = 'Enter a valid phone number';
+    }
+    return e;
+  }, [email, password, fullName, phone, isRegister]);
+
+  const showError = (field: keyof Errors) =>
+    (touched[field] || submitted) ? errors[field] : undefined;
+
+  const markTouched = (field: string) => setTouched((t) => ({ ...t, [field]: true }));
+
   // Login handler
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (errors.email || errors.password) return;
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
@@ -46,6 +86,8 @@ const Login = () => {
   // Register handler
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (Object.keys(errors).length > 0) return;
     setLoading(true);
     const { error } = await signUp(email, password, fullName, phone);
     setLoading(false);
@@ -56,6 +98,9 @@ const Login = () => {
       setIsRegister(false);
     }
   };
+
+  const inputCls = (hasError?: string) =>
+    `h-11 bg-background pl-10 ${hasError ? 'border-destructive focus-visible:ring-destructive' : ''}`;
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
@@ -113,23 +158,67 @@ const Login = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
               onSubmit={handleRegister}
+              noValidate
               className="space-y-3.5"
             >
-              <div className="relative">
-                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Full Name" className="h-11 bg-background pl-10" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Full Name"
+                    className={inputCls(showError('fullName'))}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    onBlur={() => markTouched('fullName')}
+                    aria-invalid={!!showError('fullName')}
+                  />
+                </div>
+                <FieldError message={showError('fullName')} />
               </div>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input type="email" placeholder="Email" className="h-11 bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className={inputCls(showError('email'))}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => markTouched('email')}
+                    aria-invalid={!!showError('email')}
+                  />
+                </div>
+                <FieldError message={showError('email')} />
               </div>
-              <div className="relative">
-                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input type="tel" placeholder="Phone" className="h-11 bg-background pl-10" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="tel"
+                    placeholder="Phone (optional)"
+                    className={inputCls(showError('phone'))}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => markTouched('phone')}
+                    aria-invalid={!!showError('phone')}
+                  />
+                </div>
+                <FieldError message={showError('phone')} />
               </div>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input type="password" placeholder="Password (min 6 chars)" className="h-11 bg-background pl-10" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Password (min 6 chars)"
+                    className={inputCls(showError('password'))}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => markTouched('password')}
+                    aria-invalid={!!showError('password')}
+                  />
+                </div>
+                <FieldError message={showError('password')} />
               </div>
               <Button type="submit" disabled={loading} className="h-11 w-full bg-accent font-heading font-semibold text-accent-foreground shadow-accent transition-transform hover:bg-accent/90 active:scale-[0.99]">
                 {loading ? 'Creating…' : 'Create Account'}
@@ -148,15 +237,38 @@ const Login = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
               onSubmit={handleLogin}
+              noValidate
               className="space-y-3.5"
             >
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input type="email" placeholder="Email" className="h-11 bg-background pl-10" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    className={inputCls(showError('email'))}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => markTouched('email')}
+                    aria-invalid={!!showError('email')}
+                  />
+                </div>
+                <FieldError message={showError('email')} />
               </div>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input type="password" placeholder="Password" className="h-11 bg-background pl-10" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <div>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    className={inputCls(showError('password'))}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => markTouched('password')}
+                    aria-invalid={!!showError('password')}
+                  />
+                </div>
+                <FieldError message={showError('password')} />
               </div>
               <div className="flex justify-end">
                 <Link to="/forgot-password" className="text-xs font-medium text-accent hover:underline">
