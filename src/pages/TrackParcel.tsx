@@ -3,7 +3,6 @@
  */
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,15 +17,10 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.C
 };
 
 interface Parcel {
-  id: string;
   tracking_code: string;
-  sender_name: string;
-  recipient_name: string;
   origin: string;
   destination: string;
-  description: string;
   weight_kg: number;
-  fare: number;
   status: string;
   created_at: string;
   updated_at: string;
