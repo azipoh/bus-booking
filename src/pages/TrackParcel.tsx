@@ -46,9 +46,7 @@ const TrackParcel = () => {
     setSearched(true);
     try {
       const { data, error } = await supabase
-        .from('parcels')
-        .select('*')
-        .eq('tracking_code', code.trim().toUpperCase())
+        .rpc('track_parcel', { _tracking_code: code.trim().toUpperCase() })
         .maybeSingle();
 
       if (error) throw error;
