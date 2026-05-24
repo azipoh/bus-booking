@@ -112,29 +112,14 @@ const TrackParcel = () => {
 
                 <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-3 text-sm">
                   <div>
-                    <p className="text-xs text-muted-foreground">Sender</p>
-                    <p className="font-medium text-foreground">{parcel.sender_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Recipient</p>
-                    <p className="font-medium text-foreground">{parcel.recipient_name}</p>
-                  </div>
-                  <div>
                     <p className="text-xs text-muted-foreground">Weight</p>
                     <p className="font-medium text-foreground">{parcel.weight_kg} kg</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Fare</p>
-                    <p className="font-heading font-bold text-accent">{formatCurrency(Number(parcel.fare))}</p>
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className="font-medium text-foreground">{sc?.label}</p>
                   </div>
                 </div>
-
-                {parcel.description && (
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground">Description</p>
-                    <p className="text-sm text-foreground">{parcel.description}</p>
-                  </div>
-                )}
               </div>
 
               {/* Timeline */}
