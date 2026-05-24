@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import AuthDialog from '@/components/AuthDialog';
 
 const Navbar = () => {
   const location = useLocation();
