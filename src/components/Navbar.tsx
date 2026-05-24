@@ -16,7 +16,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, isAdmin, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const openAuth = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
 
   const passengerLinks = [
     { to: '/', label: 'Search', icon: Bus },
