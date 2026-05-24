@@ -87,11 +87,9 @@ const Navbar = () => {
               <LogOut className="h-4 w-4" /> Logout
             </Button>
           ) : (
-            <Link to="/login">
-              <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                <User className="h-4 w-4" /> Login
-              </Button>
-            </Link>
+            <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => openAuth('login')}>
+              <User className="h-4 w-4" /> Login
+            </Button>
           ))}
         </div>
 
