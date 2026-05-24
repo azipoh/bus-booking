@@ -379,6 +379,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      track_parcel: {
+        Args: { _tracking_code: string }
+        Returns: {
+          created_at: string
+          destination: string
+          origin: string
+          status: string
+          tracking_code: string
+          updated_at: string
+          weight_kg: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
