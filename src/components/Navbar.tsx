@@ -129,17 +129,17 @@ const Navbar = () => {
                     <LogOut className="h-4 w-4" /> Logout
                   </Button>
                 ) : (
-                  <Link to="/login" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full gap-2 bg-primary text-primary-foreground">
-                      <User className="h-4 w-4" /> Login
-                    </Button>
-                  </Link>
+                  <Button className="w-full gap-2 bg-primary text-primary-foreground" onClick={() => { setMobileOpen(false); openAuth('login'); }}>
+                    <User className="h-4 w-4" /> Login
+                  </Button>
                 )}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} initialMode={authMode} />
     </nav>
   );
 };
