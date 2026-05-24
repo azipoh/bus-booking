@@ -59,13 +59,13 @@
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(220 60% 15%), hsl(220 50% 25%), hsl(230 40% 30%));
-    --gradient-accent: linear-gradient(135deg, hsl(36 95% 54%), hsl(28 90% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 97%));
+    --gradient-hero: linear-gradient(135deg, hsl(213 70% 14%), hsl(205 60% 22%), hsl(192 56% 30%));
+    --gradient-accent: linear-gradient(135deg, hsl(187 56% 48%), hsl(192 70% 38%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(200 30% 97%));
 
-    --shadow-soft: 0 2px 15px -3px hsl(220 60% 20% / 0.08), 0 4px 6px -4px hsl(220 60% 20% / 0.05);
-    --shadow-elevated: 0 10px 40px -10px hsl(220 60% 20% / 0.15), 0 4px 12px -4px hsl(220 60% 20% / 0.08);
-    --shadow-accent: 0 8px 25px -5px hsl(36 95% 54% / 0.35);
+    --shadow-soft: 0 2px 15px -3px hsl(213 70% 20% / 0.08), 0 4px 6px -4px hsl(213 70% 20% / 0.05);
+    --shadow-elevated: 0 10px 40px -10px hsl(213 70% 20% / 0.15), 0 4px 12px -4px hsl(213 70% 20% / 0.08);
+    --shadow-accent: 0 8px 25px -5px hsl(187 56% 48% / 0.35);
 
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
