@@ -21,35 +21,35 @@
     --popover: 0 0% 89%;
     --popover-foreground: 0 0% 9%;
 
-    --primary: 161 93% 30%;
-    --primary-foreground: 151 80% 95%;
+    --primary: 210 72% 24%;
+    --primary-foreground: 200 60% 96%;
 
-    --secondary: 0 0% 32%;
+    --secondary: 200 30% 35%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 63%;
-    --muted-foreground: 0 0% 9%;
+    --muted: 200 20% 70%;
+    --muted-foreground: 210 30% 20%;
 
-    --accent: 166 76% 96%;
-    --accent-foreground: 173 80% 40%;
+    --accent: 187 56% 90%;
+    --accent-foreground: 192 56% 28%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --border: 0 0% 83%;
-    --input: 0 0% 83%;
-    --ring: 161 93% 30%;
+    --border: 200 20% 83%;
+    --input: 200 20% 83%;
+    --ring: 192 56% 40%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 60% 15%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 161 93% 30%;
-    --sidebar-primary-foreground: 151 80% 95%;
-    --sidebar-accent: 0 0% 32%;
+    --sidebar-background: 213 70% 15%;
+    --sidebar-foreground: 200 30% 90%;
+    --sidebar-primary: 187 56% 48%;
+    --sidebar-primary-foreground: 213 70% 10%;
+    --sidebar-accent: 210 50% 25%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 83%;
-    --sidebar-ring: 161 93% 30%;
+    --sidebar-border: 210 40% 22%;
+    --sidebar-ring: 187 56% 48%;
 
     /* Custom tokens */
     --success: 152 60% 40%;
