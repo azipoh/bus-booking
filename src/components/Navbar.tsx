@@ -9,13 +9,21 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import AuthDialog from '@/components/AuthDialog';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const openAuth = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
 
   const passengerLinks = [
     { to: '/', label: 'Search', icon: Bus },
@@ -79,11 +87,9 @@ const Navbar = () => {
               <LogOut className="h-4 w-4" /> Logout
             </Button>
           ) : (
-            <Link to="/login">
-              <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                <User className="h-4 w-4" /> Login
-              </Button>
-            </Link>
+            <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => openAuth('login')}>
+              <User className="h-4 w-4" /> Login
+            </Button>
           ))}
         </div>
 
@@ -123,17 +129,17 @@ const Navbar = () => {
                     <LogOut className="h-4 w-4" /> Logout
                   </Button>
                 ) : (
-                  <Link to="/login" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full gap-2 bg-primary text-primary-foreground">
-                      <User className="h-4 w-4" /> Login
-                    </Button>
-                  </Link>
+                  <Button className="w-full gap-2 bg-primary text-primary-foreground" onClick={() => { setMobileOpen(false); openAuth('login'); }}>
+                    <User className="h-4 w-4" /> Login
+                  </Button>
                 )}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} initialMode={authMode} />
     </nav>
   );
 };
