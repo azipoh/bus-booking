@@ -101,10 +101,10 @@ const Navbar = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-border bg-card md:hidden"
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -10, opacity: 0 }}
+            className="absolute left-0 right-0 top-full overflow-hidden border-t border-border bg-card/95 backdrop-blur-lg shadow-lg md:hidden"
           >
             <div className="flex flex-col gap-1 p-4">
               {links.map((link) => (
