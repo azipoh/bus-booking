@@ -52,7 +52,7 @@ It can only be RESCHEDULED to another trip.
 Please present this e-ticket at boarding.
 
 Thank you for choosing BusGo!
-© 2026 BusGo — Cameroon
+© 2026 Moghamo — Cameroon
 ========================================
 `;
 

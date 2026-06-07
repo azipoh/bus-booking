@@ -13,8 +13,8 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const adminEmail = "admin@busgo.cm";
-  const adminPassword = "Admin@2026";
+  const adminEmail = "admin@gmail.com";
+  const adminPassword = "Peaches";
 
   // Check if admin already exists
   const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();

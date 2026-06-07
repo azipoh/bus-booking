@@ -289,7 +289,7 @@ const Login = () => {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing, you agree to BusGo's Terms & Privacy Policy.
+          By continuing, you agree to Moghamo's Terms & Privacy Policy.
         </p>
       </motion.div>
     </div>
