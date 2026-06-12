@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     email: adminEmail,
     password: adminPassword,
     email_confirm: true,
-    user_metadata: { full_name: "BusGo Admin" },
+    user_metadata: { full_name: "Moghamo Admin" },
   });
 
   if (error) {
