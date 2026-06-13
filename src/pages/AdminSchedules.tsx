@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Schedules page for managing trips/schedules.
  */
 import { useState } from 'react';
@@ -221,11 +221,11 @@ const AdminSchedules = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-foreground">Departure</label>
-                    <Input type="datetime-local" value={formDeparture} onChange={(e) => setFormDeparture(e.target.value)} />
+                    <Input type="datetime-local" value={formDeparture} min={new Date().toISOString().slice(0, 16)} onChange={(e) => setFormDeparture(e.target.value)} />
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-medium text-foreground">Arrival</label>
-                    <Input type="datetime-local" value={formArrival} onChange={(e) => setFormArrival(e.target.value)} />
+                    <Input type="datetime-local" value={formArrival} min={new Date().toISOString().slice(0, 16)} onChange={(e) => setFormArrival(e.target.value)} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -322,3 +322,4 @@ const AdminSchedules = () => {
 };
 
 export default AdminSchedules;
+
