@@ -84,8 +84,8 @@ const BusCard = ({ schedule, index }: BusCardProps) => {
 
         {/* Fare & book */}
         <div className="flex items-center gap-4 lg:flex-col lg:items-end lg:gap-2">
-          <div className="text-right">
-            <p className="font-heading text-2xl font-bold text-foreground">{formatCurrency(Number(schedule.fare))}</p>
+          <div className="rounded-lg bg-success/10 px-3 py-2 text-right">
+            <p className="font-heading text-2xl font-bold text-success">{formatCurrency(Number(schedule.fare))}</p>
             <p className="text-xs text-muted-foreground">{schedule.available_seats} seats left</p>
           </div>
           <Link to={`/select-seat/${schedule.id}`}>

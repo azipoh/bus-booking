@@ -69,11 +69,6 @@ const Index = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mx-auto mt-4 flex justify-center gap-3"
           >
-            <Link to="/send-parcel">
-              <Button className="gap-2 bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
-                <Package className="h-4 w-4" /> Send a Parcel
-              </Button>
-            </Link>
             <Link to="/track-parcel">
               <Button className="gap-2 bg-secondary font-heading font-semibold text-secondary-foreground hover:bg-secondary/80">
                 <MapPin className="h-4 w-4" /> Track Parcel
@@ -131,7 +126,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-heading text-lg font-bold text-accent">from {formatCurrency(r.price)}</p>
+                <p className="font-heading text-lg font-bold text-warning">from {formatCurrency(r.price)}</p>
               </div>
             </motion.a>
           ))}
