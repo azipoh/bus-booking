@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, Package, MapPin, Calendar, Settings } from 'lucide-react';
+import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,17 +34,7 @@ const Navbar = () => {
     ] : []),
   ];
 
-  const adminLinks = [
-    { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/admin/buses', label: 'Buses', icon: Bus },
-    { to: '/admin/schedules', label: 'Schedules', icon: Calendar },
-    { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
-    { to: '/admin/parcels', label: 'Parcels', icon: Package },
-    { to: '/admin/send-parcel', label: 'Register Parcel', icon: Package },
-    { to: '/admin/settings', label: 'Settings', icon: Settings },
-  ];
-
-  const links = isAdminRoute ? adminLinks : passengerLinks;
+  const links = isAdminRoute ? [] : passengerLinks;
 
   const handleSignOut = async () => {
     await signOut();
@@ -74,11 +64,11 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          {user && isAdmin && (
-            <Link to={isAdminRoute ? '/' : '/admin'}>
+          {user && isAdmin && !isAdminRoute && (
+            <Link to="/admin">
               <Button variant="outline" size="sm" className="gap-2">
-                {isAdminRoute ? <Bus className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
-                {isAdminRoute ? 'Passenger View' : 'Admin'}
+                <LayoutDashboard className="h-4 w-4" />
+                Admin
               </Button>
             </Link>
           )}
@@ -116,11 +106,11 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="mt-2 border-t border-border pt-2">
-                {user && isAdmin && (
-                  <Link to={isAdminRoute ? '/' : '/admin'} onClick={() => setMobileOpen(false)}>
+                {user && isAdmin && !isAdminRoute && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)}>
                     <Button variant="outline" className="mb-2 w-full gap-2">
-                      {isAdminRoute ? <Bus className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
-                      {isAdminRoute ? 'Passenger View' : 'Admin Panel'}
+                      <LayoutDashboard className="h-4 w-4" />
+                      Admin Panel
                     </Button>
                   </Link>
                 )}

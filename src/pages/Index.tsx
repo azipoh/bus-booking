@@ -9,7 +9,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
 import heroBus from '@/assets/hero-bus.jpg';
-import card from '@/components/card';
+import destYaounde from '@/assets/dest-yaounde.jpg';
+import destBuea from '@/assets/dest-buea.jpg';
+import destLimbe from '@/assets/dest-limbe.jpg';
+import destBamenda from '@/assets/dest-bamenda.jpg';
 
 const features = [
   { icon: Shield, title: 'Secure Booking', desc: 'Encrypted payments & seat locking' },
@@ -25,6 +28,13 @@ const popularRoutes = [
   { from: 'Douala', to: 'Limbe', price: 2000 },
   { from: 'Yaoundé', to: 'Bamenda', price: 7000 },
   { from: 'Buea', to: 'Limbe', price: 1500 },
+];
+
+const destinations = [
+  { name: 'Yaoundé', tagline: 'The capital on seven hills', image: destYaounde },
+  { name: 'Buea', tagline: 'Gateway to Mount Cameroon', image: destBuea },
+  { name: 'Limbe', tagline: 'Black sand beaches & ocean views', image: destLimbe },
+  { name: 'Bamenda', tagline: 'Scenic highlands & grassfields', image: destBamenda },
 ];
 
 const Index = () => {
@@ -70,6 +80,11 @@ const Index = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mx-auto mt-4 flex justify-center gap-3"
           >
+            <Link to="/send-parcel">
+              <Button className="gap-2 bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
+                <Package className="h-4 w-4" /> Send a Parcel
+              </Button>
+            </Link>
             <Link to="/track-parcel">
               <Button className="gap-2 bg-secondary font-heading font-semibold text-secondary-foreground hover:bg-secondary/80">
                 <MapPin className="h-4 w-4" /> Track Parcel
@@ -96,6 +111,46 @@ const Index = () => {
               <h3 className="font-heading text-sm font-bold text-foreground">{f.title}</h3>
               <p className="text-xs text-muted-foreground">{f.desc}</p>
             </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Top Destinations */}
+      <section className="container mx-auto px-4 pt-16">
+        <h2 className="mb-2 text-center font-heading text-3xl font-bold text-foreground">
+          Top Destinations
+        </h2>
+        <p className="mb-8 text-center text-muted-foreground">
+          Discover where your next journey can take you
+        </p>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {destinations.map((d, i) => (
+            <motion.a
+              key={d.name}
+              href={`/search?to=${encodeURIComponent(d.name)}&date=${new Date().toISOString().split('T')[0]}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="group relative block overflow-hidden rounded-2xl shadow-soft transition-all hover:shadow-elevated"
+            >
+              <img
+                src={d.image}
+                alt={`${d.name}, Cameroon`}
+                loading="lazy"
+                width={768}
+                height={512}
+                className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="flex items-center gap-1.5 text-accent">
+                  <MapPin className="h-4 w-4" />
+                  <h3 className="font-heading text-lg font-bold text-primary-foreground">{d.name}</h3>
+                </div>
+                <p className="mt-0.5 text-sm text-primary-foreground/80">{d.tagline}</p>
+              </div>
+            </motion.a>
           ))}
         </div>
       </section>
@@ -136,7 +191,7 @@ const Index = () => {
 
       <footer className="border-t border-border bg-card py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2026 Moghamo — Online Bus & Parcel Booking System. Cameroon.</p>
+          <p>© 2026 <Moghamo></Moghamo> — Online Bus & Parcel Booking System. Cameroon.</p>
         </div>
       </footer>
     </div>
