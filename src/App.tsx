@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminLayout from "@/components/AdminLayout";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
@@ -43,14 +44,14 @@ const App = () => (
             <Route path="/booking-confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
             <Route path="/track-parcel" element={<TrackParcel />} />
-            <Route path="/admin/send-parcel" element={<ProtectedRoute requireAdmin><SendParcel /></ProtectedRoute>} />
-            <Route path="/admin/my-parcels" element={<ProtectedRoute requireAdmin><MyParcels /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminBuses /></ProtectedRoute>} />
-            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
-            <Route path="/admin/schedules" element={<ProtectedRoute requireAdmin><AdminSchedules /></ProtectedRoute>} />
-            <Route path="/admin/parcels" element={<ProtectedRoute requireAdmin><AdminParcels /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/send-parcel" element={<ProtectedRoute requireAdmin><AdminLayout><SendParcel /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/my-parcels" element={<ProtectedRoute requireAdmin><AdminLayout><MyParcels /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBookings /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/schedules" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/parcels" element={<ProtectedRoute requireAdmin><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
 import heroBus from '@/assets/hero-bus.jpg';
+import card from '@/components/card';
 
 const features = [
   { icon: Shield, title: 'Secure Booking', desc: 'Encrypted payments & seat locking' },
