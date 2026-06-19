@@ -10,11 +10,19 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
+/ Local "today" (YYYY-MM-DD) — avoids UTC off-by-one from toISOString()
+const getToday = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().split('T')[0];
+};
+
 const SearchForm = () => {
   const navigate = useNavigate();
+  const today = getToday();
   const [source, setSource] = useState('');
   const [destination, setDestination] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(today);
   const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
   const [showDestSuggestions, setShowDestSuggestions] = useState(false);
   const [cities, setCities] = useState<string[]>([]);
@@ -49,7 +57,7 @@ const SearchForm = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (source && destination && date) {
+    if (source && destination && date && date >= today){
       navigate(`/search?from=${encodeURIComponent(source)}&to=${encodeURIComponent(destination)}&date=${date}`);
     }
   };
@@ -134,9 +142,13 @@ const SearchForm = () => {
           <Input
             type="date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="h-12 border-border bg-background text-base"
-            min={new Date().toISOString().split('T')[0]}
+            onChange={(e) => {
+              // Clamp any past date selection (iOS lets you scroll past min)
+              const next = e.target.value;
+              setDate(next && next < today ? today : next);
+            }}
+            className="h-12 appearance-none border-border bg-background text-base [&::-webkit-date-and-time-value]:text-left [&::-webkit-datetime-edit]:py-0"
+            min={today}
           />
         </div>
 

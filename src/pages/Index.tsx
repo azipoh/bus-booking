@@ -78,13 +78,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mx-auto mt-4 flex justify-center gap-3"
-          >
-            <Link to="/send-parcel">
-              <Button className="gap-2 bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
-                <Package className="h-4 w-4" /> Send a Parcel
-              </Button>
-            </Link>
+            className="mx-auto mt-4 flex justify-center gap-3">
             <Link to="/track-parcel">
               <Button className="gap-2 bg-secondary font-heading font-semibold text-secondary-foreground hover:bg-secondary/80">
                 <MapPin className="h-4 w-4" /> Track Parcel
