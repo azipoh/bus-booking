@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
-/ Local "today" (YYYY-MM-DD) — avoids UTC off-by-one from toISOString()
+// Local "today" (YYYY-MM-DD) — avoids UTC off-by-one from toISOString()
 const getToday = () => {
   const now = new Date();
   const offset = now.getTimezoneOffset() * 60000;
