@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currency';
 import { Loader2, CheckCircle2, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { paymentSchema } from '@/lib/validation';
 
 interface PaymentModalProps {
   open: boolean;
@@ -24,11 +25,13 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
   const [provider, setProvider] = useState<PaymentProvider | null>(null);
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState<PaymentStep>('select');
-
+const [phoneError, setPhoneError] = useState<string | null>(null);
+  
   const reset = () => {
     setProvider(null);
     setPhone('');
     setStep('select');
+    setPhoneError(null);
   };
 
   const handleClose = () => {
@@ -37,7 +40,12 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
   };
 
   const handlePay = () => {
-    if (!phone || phone.length < 9) return;
+    const result = paymentSchema.safeParse({ provider, phone });
+    if (!result.success) {
+      setPhoneError(result.error.issues[0]?.message ?? 'Invalid payment details');
+      return;
+    }
+    setPhoneError(null);
     setStep('processing');
     // Simulate payment processing (2-3 seconds)
     setTimeout(() => {
@@ -128,10 +136,11 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
                       type="tel"
                       placeholder={provider === 'mtn' ? '6XX XXX XXX' : '6XX XXX XXX'}
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                      onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 9)); setPhoneError(null); }}
                       className="bg-background"
                     />
                   </div>
+                   {phoneError && <p className="mt-1 text-xs text-destructive">{phoneError}</p>}
                 </div>
 
                 <p className="text-xs text-muted-foreground">

@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { searchSchema } from '@/lib/validation';
 
 // Local "today" (YYYY-MM-DD) — avoids UTC off-by-one from toISOString()
 const getToday = () => {
@@ -57,9 +59,12 @@ const SearchForm = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (source && destination && date && date >= today){
-      navigate(`/search?from=${encodeURIComponent(source)}&to=${encodeURIComponent(destination)}&date=${date}`);
+    const result = searchSchema(today).safeParse({ source, destination, date });
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message ?? 'Please check your search details');
+      return;
     }
+    navigate(`/search?from=${encodeURIComponent(source)}&to=${encodeURIComponent(destination)}&date=${date}`);
   };
 
   return (
