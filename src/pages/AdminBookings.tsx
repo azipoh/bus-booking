@@ -99,4 +99,7 @@ const AdminBookings = () => {
       )}
     </div>
   </div>
-); 
+  );
+};
+
+export default AdminBookings;
