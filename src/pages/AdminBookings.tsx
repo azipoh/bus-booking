@@ -40,7 +40,7 @@ const AdminBookings = () => {
     queryFn: async () => {
       let query = supabase
         .from('bookings')
-        select('*, schedules(*, buses(*), routes(*))', { count: 'exact' })
+        .select('*, schedules(*, buses(*), routes(*))', { count: 'exact' })
         .order('booked_at', { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
       if (debouncedSearch) {
@@ -99,4 +99,4 @@ const AdminBookings = () => {
       )}
     </div>
   </div>
-); // 
+); 
