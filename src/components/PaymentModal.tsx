@@ -25,8 +25,8 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
   const [provider, setProvider] = useState<PaymentProvider | null>(null);
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState<PaymentStep>('select');
-const [phoneError, setPhoneError] = useState<string | null>(null);
-  
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
   const reset = () => {
     setProvider(null);
     setPhone('');
@@ -140,7 +140,7 @@ const [phoneError, setPhoneError] = useState<string | null>(null);
                       className="bg-background"
                     />
                   </div>
-                   {phoneError && <p className="mt-1 text-xs text-destructive">{phoneError}</p>}
+                  {phoneError && <p className="mt-1 text-xs text-destructive">{phoneError}</p>}
                 </div>
 
                 <p className="text-xs text-muted-foreground">
