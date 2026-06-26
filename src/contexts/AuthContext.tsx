@@ -12,7 +12,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; isAdmin: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -32,7 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .eq('user_id', userId)
       .eq('role', 'admin')
       .maybeSingle();
-    setIsAdmin(!!data);
+    const admin = !!data;
+    setIsAdmin(admin);
+    return admin;
   };
 
   useEffect(() => {
@@ -77,8 +79,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    let admin = false;
+
+    if (!error && data.session?.user) {
+      admin = await checkAdminRole(data.session.user.id);
+    }
+
+    return { error: error as Error | null, isAdmin: admin };
   };
 
   const signOut = async () => {

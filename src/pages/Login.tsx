@@ -73,13 +73,13 @@ const Login = () => {
     setSubmitted(true);
     if (errors.email || errors.password) return;
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error, isAdmin: admin } = await signIn(email, password);
     setLoading(false);
     if (error) {
       toast.error(error.message);
     } else {
       toast.success('Logged in successfully!');
-      navigate('/');
+      navigate(admin ? '/admin' : '/');
     }
   };
 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bus, Mail, Lock, User, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -41,6 +41,7 @@ interface Props {
 }
 
 const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
+  const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<Mode>(initialMode);
   const isRegister = mode === 'signup';
@@ -128,12 +129,13 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
     setSubmitted(true);
     if (errors.email || errors.password) return;
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error, isAdmin: admin } = await signIn(email, password);
     setLoading(false);
     if (error) toast.error(error.message);
     else {
       toast.success('Logged in successfully!');
       onOpenChange(false);
+      navigate(admin ? '/admin' : '/');
     }
   };
 

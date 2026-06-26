@@ -21,6 +21,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 const adminLinks = [
@@ -35,6 +36,7 @@ const adminLinks = [
 
 const AdminSidebar = () => {
   const { pathname } = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -54,7 +56,15 @@ const AdminSidebar = () => {
               {adminLinks.map((link) => (
                 <SidebarMenuItem key={link.to}>
                   <SidebarMenuButton asChild isActive={pathname === link.to}>
-                    <NavLink to={link.to} className="flex items-center gap-2">
+                    <NavLink
+                      to={link.to}
+                      className="flex items-center gap-2"
+                      onClick={() => {
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
+                    >
                       <link.icon className="h-4 w-4" />
                       <span>{link.label}</span>
                     </NavLink>
