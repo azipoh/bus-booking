@@ -272,6 +272,7 @@ export type Database = {
           departure_time: string
           fare: number
           id: string
+          image_url: string | null
           route_id: string
           status: string
         }
@@ -283,6 +284,7 @@ export type Database = {
           departure_time: string
           fare?: number
           id?: string
+          image_url?: string | null
           route_id: string
           status?: string
         }
@@ -294,6 +296,7 @@ export type Database = {
           departure_time?: string
           fare?: number
           id?: string
+          image_url?: string | null
           route_id?: string
           status?: string
         }
