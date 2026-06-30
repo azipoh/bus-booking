@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Loader2, Building2, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { isMissingBranchesTableError } from '@/lib/branchHelpers';
 
 const AdminBranches = () => {
   const qc = useQueryClient();
@@ -31,8 +32,8 @@ const AdminBranches = () => {
   useEffect(() => {
     const ensureTable = async () => {
       const { error } = await supabase.from('branches').select('id').limit(1);
-      if (error) {
-        await supabase.from('branches').insert({ name: 'Main Branch', location: 'Douala' });
+      if (error && isMissingBranchesTableError(error)) {
+        toast.warning('The branches table is missing in Supabase. Please run the database migration for branches first.');
       }
     };
     void ensureTable();
@@ -41,7 +42,12 @@ const AdminBranches = () => {
   const createBranchMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.from('branches').insert({ name, location }).select('id').single();
-      if (error) throw error;
+      if (error) {
+        if (isMissingBranchesTableError(error)) {
+          throw new Error('The branches table is missing in Supabase. Please run the branches migration before creating a branch.');
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: async (branch) => {

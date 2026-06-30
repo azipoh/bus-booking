@@ -10,6 +10,7 @@ import {
   Ticket,
   Package,
   Settings,
+  Building2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,6 +31,7 @@ const adminLinks = [
   { to: '/admin/schedules', label: 'Schedules', icon: Calendar },
   { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
   { to: '/admin/parcels', label: 'Parcels', icon: Package },
+  { to: '/admin/branches', label: 'Branches', icon: Building2 },
   { to: '/admin/send-parcel', label: 'Register Parcel', icon: Package },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ];
