@@ -25,6 +25,10 @@ const AdminBookings = lazy(() => import("./pages/AdminBookings"));
 const AdminSchedules = lazy(() => import("./pages/AdminSchedules"));
 const AdminParcels = lazy(() => import("./pages/AdminParcels"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const AdminBranches = lazy(() => import("./pages/AdminBranches"));
+const AdminBranchDetail = lazy(() => import("./pages/AdminBranchDetail"));
+const ManagerBranch = lazy(() => import("./pages/ManagerBranch"));
+const ManagerReports = lazy(() => import("./pages/ManagerReports"));
 const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -63,14 +67,21 @@ const App = () => (
                 <Route path="/booking-confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
                 <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
                 <Route path="/track-parcel" element={<TrackParcel />} />
-                <Route path="/admin/send-parcel" element={<ProtectedRoute requireAdmin><AdminLayout><SendParcel /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/my-parcels" element={<ProtectedRoute requireAdmin><AdminLayout><MyParcels /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBookings /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/schedules" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/parcels" element={<ProtectedRoute requireAdmin><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/send-parcel" element={<ProtectedRoute requireStaff><AdminLayout><SendParcel /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/my-parcels" element={<ProtectedRoute requireStaff><AdminLayout><MyParcels /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute requireStaff><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/buses" element={<ProtectedRoute requireStaff><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/bookings" element={<ProtectedRoute requireStaff><AdminLayout><AdminBookings /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/schedules" element={<ProtectedRoute requireStaff><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/parcels" element={<ProtectedRoute requireStaff><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute requireStaff><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/branches" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBranches /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/branch/:branchId" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBranchDetail /></AdminLayout></ProtectedRoute>} />
+                <Route path="/cashier/register-parcel" element={<ProtectedRoute allowedRoles={['cashier']}><SendParcel /></ProtectedRoute>} />
+                <Route path="/cashier/parcels" element={<ProtectedRoute allowedRoles={['cashier']}><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />
+                <Route path="/manager/branch" element={<ProtectedRoute allowedRoles={['manager']}><AdminLayout><ManagerBranch /></AdminLayout></ProtectedRoute>} />
+                <Route path="/manager/schedules" element={<ProtectedRoute allowedRoles={['manager']}><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
+                <Route path="/manager/reports" element={<ProtectedRoute allowedRoles={['manager']}><AdminLayout><ManagerReports /></AdminLayout></ProtectedRoute>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

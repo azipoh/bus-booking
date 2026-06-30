@@ -73,13 +73,16 @@ const Login = () => {
     setSubmitted(true);
     if (errors.email || errors.password) return;
     setLoading(true);
-    const { error, isAdmin: admin } = await signIn(email, password);
+    const { error, role, isStaff } = await signIn(email, password);
     setLoading(false);
     if (error) {
       toast.error(error.message);
     } else {
       toast.success('Logged in successfully!');
-      navigate(admin ? '/admin' : '/');
+      if (role === 'cashier') navigate('/cashier/register-parcel');
+      else if (role === 'manager') navigate('/manager/branch');
+      else if (isStaff) navigate('/admin');
+      else navigate('/');
     }
   };
 

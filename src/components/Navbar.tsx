@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
+import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, MapPin, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +14,7 @@ import AuthDialog from '@/components/AuthDialog';
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, signOut, loading } = useAuth();
+  const { user, role, isAdmin, isStaff, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -64,11 +64,19 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          {user && isAdmin && !isAdminRoute && (
+          {user && isAdmin && (
+            <Link to="/admin/branches">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Branches
+              </Button>
+            </Link>
+          )}
+          {user && isStaff && !isAdminRoute && (
             <Link to="/admin">
               <Button variant="outline" size="sm" className="gap-2">
                 <LayoutDashboard className="h-4 w-4" />
-                Admin
+                {isAdmin ? 'Admin' : role === 'manager' ? 'Manager' : role === 'cashier' ? 'Cashier' : 'Staff'}
               </Button>
             </Link>
           )}
@@ -106,11 +114,19 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="mt-2 border-t border-border pt-2">
-                {user && isAdmin && !isAdminRoute && (
+                {user && isAdmin && (
+                  <Link to="/admin/branches" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="mb-2 w-full gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Branches
+                    </Button>
+                  </Link>
+                )}
+                {user && isStaff && !isAdminRoute && (
                   <Link to="/admin" onClick={() => setMobileOpen(false)}>
                     <Button variant="outline" className="mb-2 w-full gap-2">
                       <LayoutDashboard className="h-4 w-4" />
-                      Admin Panel
+                      {isAdmin ? 'Admin Panel' : role === 'manager' ? 'Manager Panel' : role === 'cashier' ? 'Cashier Panel' : 'Staff Panel'}
                     </Button>
                   </Link>
                 )}

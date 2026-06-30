@@ -1,7 +1,7 @@
 /**
  * Admin Dashboard showing key metrics and recent bookings from the database.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
 import { formatDate } from '@/lib/scheduleHelpers';
@@ -11,7 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Ticket, DollarSign, Bus, Users, Plus, Settings, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   // Fetch aggregate stats
@@ -102,7 +104,7 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Fleet & Recent Bookings */}
+        {/* Bus Fleet & Recent Bookings */}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="shadow-soft">
             <CardHeader><CardTitle className="font-heading text-base">Bus Fleet</CardTitle></CardHeader>
