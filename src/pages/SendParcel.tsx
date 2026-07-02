@@ -25,7 +25,7 @@ const calculateFare = (weight: number): number => {
 };
 
 const SendParcel = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, branchId, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,6 +67,7 @@ const SendParcel = () => {
 
       const { error } = await supabase.from('parcels').insert({
         sender_id: user.id,
+        branch_id: branchId,
         tracking_code: trackingCode,
         sender_name: senderName,
         sender_phone: senderPhone,

@@ -14,7 +14,7 @@ import AuthDialog from '@/components/AuthDialog';
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, role, isAdmin, isStaff, signOut, loading } = useAuth();
+  const { user, isStaff, panelHome, signOut, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -65,10 +65,10 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-2 md:flex">
           {user && isStaff && !isAdminRoute && (
-            <Link to="/admin">
+            <Link to={panelHome}>
               <Button variant="outline" size="sm" className="gap-2">
                 <LayoutDashboard className="h-4 w-4" />
-                {isAdmin ? 'Admin' : role === 'manager' ? 'Manager' : role === 'cashier' ? 'Cashier' : 'Staff'}
+                Staff Panel
               </Button>
             </Link>
           )}
@@ -107,10 +107,10 @@ const Navbar = () => {
               ))}
               <div className="mt-2 border-t border-border pt-2">
                 {user && isStaff && !isAdminRoute && (
-                  <Link to="/admin" onClick={() => setMobileOpen(false)}>
+                  <Link to={panelHome} onClick={() => setMobileOpen(false)}>
                     <Button variant="outline" className="mb-2 w-full gap-2">
                       <LayoutDashboard className="h-4 w-4" />
-                      {isAdmin ? 'Admin Panel' : role === 'manager' ? 'Manager Panel' : role === 'cashier' ? 'Cashier Panel' : 'Staff Panel'}
+                      Staff Panel
                     </Button>
                   </Link>
                 )}

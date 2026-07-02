@@ -1,7 +1,7 @@
 ﻿/**
  * Admin Schedules page for managing trips/schedules.
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Pencil, Trash2, Calendar, Loader2, Image, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 type DbSchedule = Tables<'schedules'>;
 type DbBus = Tables<'buses'>;
@@ -24,6 +25,7 @@ type DbRoute = Tables<'routes'>;
 
 const AdminSchedules = () => {
   const qc = useQueryClient();
+  const { branchId } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ScheduleWithDetails | null>(null);
 
@@ -37,21 +39,6 @@ const AdminSchedules = () => {
   const [formStatus, setFormStatus] = useState('active');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-
-  // Clear form state when dialog closes
-  useEffect(() => {
-    if (!dialogOpen) {
-      setEditing(null);
-      setFormBusId('');
-      setFormRouteId('');
-      setFormDeparture('');
-      setFormArrival('');
-      setFormFare('5000');
-      setFormSeats('40');
-      setFormStatus('active');
-      setImageFile(null);
-    }
-  }, [dialogOpen]);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['admin-schedules'],
@@ -81,10 +68,10 @@ const AdminSchedules = () => {
     },
   });
 
-  const uploadBusImage = async (scheduleId: string): Promise<string | null> => {
+  const uploadBusImage = async (busId: string): Promise<string | null> => {
     if (!imageFile) return null;
     const ext = imageFile.name.split('.').pop();
-    const path = `schedule-${scheduleId}-${Date.now()}.${ext}`;
+    const path = `${busId}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('bus-images').upload(path, imageFile, { upsert: true });
     if (error) { toast.error('Image upload failed: ' + error.message); return null; }
     const { data } = supabase.storage.from('bus-images').getPublicUrl(path);
@@ -92,26 +79,22 @@ const AdminSchedules = () => {
   };
 
   const upsertMutation = useMutation({
-    mutationFn: async (schedule: Partial<DbSchedule> & { image_url?: string | null }) => {
-      // Upload image for the schedule if provided
-      let imageUrl: string | null = null;
-      if (imageFile) {
+    mutationFn: async (schedule: Partial<DbSchedule>) => {
+      // Upload image for the selected bus if provided
+      if (imageFile && formBusId) {
         setUploading(true);
-        const scheduleId = editing?.id || 'new-' + Date.now();
-        imageUrl = await uploadBusImage(scheduleId);
+        const imageUrl = await uploadBusImage(formBusId);
+        if (imageUrl) {
+          await supabase.from('buses').update({ image_url: imageUrl } as any).eq('id', formBusId);
+        }
         setUploading(false);
       }
 
-      const scheduleData = { ...schedule };
-      if (imageUrl) {
-        scheduleData.image_url = imageUrl;
-      }
-
       if (editing) {
-        const { error } = await supabase.from('schedules').update(scheduleData).eq('id', editing.id);
+        const { error } = await supabase.from('schedules').update(schedule).eq('id', editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('schedules').insert(scheduleData as any);
+        const { error } = await supabase.from('schedules').insert(schedule as any);
         if (error) throw error;
       }
     },
@@ -166,6 +149,7 @@ const AdminSchedules = () => {
       fare: parseFloat(formFare),
       available_seats: parseInt(formSeats),
       status: formStatus,
+      ...(editing ? {} : { branch_id: branchId }),
     });
   };
 
@@ -199,12 +183,10 @@ const AdminSchedules = () => {
                     </SelectContent>
                   </Select>
                   {formBusId && (() => {
-                    const scheduleImage = editing?.image_url;
                     const selectedBus = buses.find(b => b.id === formBusId);
-                    const displayImage = scheduleImage || selectedBus?.image_url;
-                    return displayImage ? (
+                    return selectedBus?.image_url ? (
                       <div className="mt-2">
-                        <img src={displayImage} alt={selectedBus?.name || 'Bus'} className="h-24 w-full rounded-lg object-cover" />
+                        <img src={selectedBus.image_url} alt={selectedBus.name} className="h-24 w-full rounded-lg object-cover" />
                       </div>
                     ) : (
                       <div className="mt-2 flex h-24 w-full items-center justify-center rounded-lg bg-muted">
@@ -242,11 +224,11 @@ const AdminSchedules = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-foreground">Departure</label>
-                    <Input type="datetime-local" value={formDeparture} min={new Date().toISOString().slice(0, 16)} onChange={(e) => setFormDeparture(e.target.value)} />
+                    <Input type="datetime-local" value={formDeparture} onChange={(e) => setFormDeparture(e.target.value)} />
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-medium text-foreground">Arrival</label>
-                    <Input type="datetime-local" value={formArrival} min={new Date().toISOString().slice(0, 16)} onChange={(e) => setFormArrival(e.target.value)} />
+                    <Input type="datetime-local" value={formArrival} onChange={(e) => setFormArrival(e.target.value)} />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -286,11 +268,7 @@ const AdminSchedules = () => {
             {schedules.map((s, i) => (
               <motion.div key={s.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Card className="overflow-hidden shadow-soft">
-                  {s.image_url ? (
-                    <div className="h-32 w-full">
-                      <img src={s.image_url} alt={s.buses.name} className="h-full w-full object-cover" />
-                    </div>
-                  ) : s.buses.image_url ? (
+                  {s.buses.image_url ? (
                     <div className="h-32 w-full">
                       <img src={s.buses.image_url} alt={s.buses.name} className="h-full w-full object-cover" />
                     </div>
@@ -347,4 +325,3 @@ const AdminSchedules = () => {
 };
 
 export default AdminSchedules;
-
