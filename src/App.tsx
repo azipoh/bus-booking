@@ -76,7 +76,7 @@ const App = () => (
                 <Route path="/admin/branches" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBranches /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/branch-report" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><BranchReport /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/buses" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/buses" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBookings /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/schedules" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/parcels" element={<ProtectedRoute allowedRoles={["manager", "cashier"]}><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />

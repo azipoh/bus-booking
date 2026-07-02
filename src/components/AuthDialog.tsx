@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bus, Mail, Lock, User, Phone, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Bus, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -14,16 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9\s-]{7,20}$/;
 
-// ADDED: Strong password regex patterns
-const PASSWORD_RULES = {
-  minLength: 8,
-  hasUpperCase: /[A-Z]/,
-  hasLowerCase: /[a-z]/,
-  hasNumber: /\d/,
-  hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/,
-};
-
-type Errors = Partial<Record<'email' | 'password' | 'confirmPassword' | 'fullName' | 'phone', string>>;
+type Errors = Partial<Record<'email' | 'password' | 'fullName' | 'phone', string>>;
 type Mode = 'login' | 'signup';
 
 const FieldError = ({ message }: { message?: string }) =>
@@ -41,8 +32,8 @@ interface Props {
 }
 
 const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
-  const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>(initialMode);
   const isRegister = mode === 'signup';
 
@@ -51,94 +42,48 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState(''); // ADDED
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // ADDED
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // ADDED
 
   useEffect(() => {
     if (open) {
       setMode(initialMode);
       setTouched({});
       setSubmitted(false);
-      setEmail('');
-      setPassword('');
-      setConfirmPassword(''); // ADDED
-      setFullName('');
-      setPhone('');
     }
   }, [open, initialMode]);
-
-  // ADDED: Password strength validation function
-  const validatePassword = (password: string): string | null => {
-    if (!password) return 'Password is required';
-    if (password.length < PASSWORD_RULES.minLength) {
-      return `Password must be at least ${PASSWORD_RULES.minLength} characters`;
-    }
-    if (!PASSWORD_RULES.hasUpperCase.test(password)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!PASSWORD_RULES.hasLowerCase.test(password)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!PASSWORD_RULES.hasNumber.test(password)) {
-      return 'Password must contain at least one number';
-    }
-    if (!PASSWORD_RULES.hasSpecialChar.test(password)) {
-      return 'Password must contain at least one special character';
-    }
-    return null;
-  };
 
   const errors: Errors = useMemo(() => {
     const e: Errors = {};
     if (!email.trim()) e.email = 'Email is required';
     else if (!EMAIL_RE.test(email.trim())) e.email = 'Enter a valid email address';
-    
-    // UPDATED: Password validation for both login and signup
-    if (!password) {
-      e.password = 'Password is required';
-    } else if (isRegister) {
-      const passwordError = validatePassword(password);
-      if (passwordError) e.password = passwordError;
-    }
-    
-    // ADDED: Confirm password validation
+    if (!password) e.password = 'Password is required';
+    else if (isRegister && password.length < 6) e.password = 'Password must be at least 6 characters';
     if (isRegister) {
-      if (!confirmPassword) {
-        e.confirmPassword = 'Please confirm your password';
-      } else if (password !== confirmPassword) {
-        e.confirmPassword = 'Passwords do not match';
-      }
-      
       if (!fullName.trim()) e.fullName = 'Full name is required';
       else if (fullName.trim().length < 2) e.fullName = 'Name must be at least 2 characters';
       if (phone && !PHONE_RE.test(phone.trim())) e.phone = 'Enter a valid phone number';
     }
     return e;
-  }, [email, password, confirmPassword, fullName, phone, isRegister]);
+  }, [email, password, fullName, phone, isRegister]);
 
   const showError = (field: keyof Errors) => (touched[field] || submitted) ? errors[field] : undefined;
   const markTouched = (field: string) => setTouched((t) => ({ ...t, [field]: true }));
   const inputCls = (hasError?: string) =>
-    `h-11 bg-background pl-10 pr-10 ${hasError ? 'border-destructive focus-visible:ring-destructive' : ''}`;
+    `h-11 bg-background pl-10 ${hasError ? 'border-destructive focus-visible:ring-destructive' : ''}`;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     if (errors.email || errors.password) return;
     setLoading(true);
-    const { error, role, isStaff } = await signIn(email, password);
+    const { error, redirectTo } = await signIn(email, password);
     setLoading(false);
     if (error) toast.error(error.message);
     else {
       toast.success('Logged in successfully!');
       onOpenChange(false);
-      if (role === 'cashier') navigate('/cashier/register-parcel');
-      else if (role === 'manager') navigate('/manager/branch');
-      else if (isStaff) navigate('/admin');
-      else navigate('/');
+      navigate(redirectTo);
     }
   };
 
@@ -160,47 +105,6 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
     setMode(m);
     setTouched({});
     setSubmitted(false);
-  };
-
-  // ADDED: Password strength indicator component
-  const PasswordStrengthIndicator = ({ password }: { password: string }) => {
-    if (!password) return null;
-    
-    const checks = [
-      { label: '8+ characters', passed: password.length >= PASSWORD_RULES.minLength },
-      { label: 'Uppercase letter', passed: PASSWORD_RULES.hasUpperCase.test(password) },
-      { label: 'Lowercase letter', passed: PASSWORD_RULES.hasLowerCase.test(password) },
-      { label: 'Number', passed: PASSWORD_RULES.hasNumber.test(password) },
-      { label: 'Special character', passed: PASSWORD_RULES.hasSpecialChar.test(password) },
-    ];
-
-    const passedCount = checks.filter(c => c.passed).length;
-    const strengthPercent = (passedCount / checks.length) * 100;
-    
-    let strengthColor = 'bg-destructive';
-    if (passedCount >= 3) strengthColor = 'bg-yellow-500';
-    if (passedCount >= 5) strengthColor = 'bg-green-500';
-
-    return (
-      <div className="mt-2 space-y-2">
-        <div className="h-1.5 w-full rounded-full bg-muted">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${strengthColor}`}
-            style={{ width: `${strengthPercent}%` }}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-1">
-          {checks.map((check, i) => (
-            <div key={i} className="flex items-center gap-1 text-xs">
-              <div className={`h-1.5 w-1.5 rounded-full ${check.passed ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
-              <span className={check.passed ? 'text-green-600' : 'text-muted-foreground'}>
-                {check.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -275,55 +179,14 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
                 </div>
                 <FieldError message={showError('phone')} />
               </div>
-              
-              {/* UPDATED: Password field with show/hide toggle */}
               <div>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="Password (min 8 chars, uppercase, number, special char)" 
-                    className={inputCls(showError('password'))} 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)} 
-                    onBlur={() => markTouched('password')} 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  <Input type="password" placeholder="Password (min 6 chars)" className={inputCls(showError('password'))} value={password}
+                    onChange={(e) => setPassword(e.target.value)} onBlur={() => markTouched('password')} />
                 </div>
                 <FieldError message={showError('password')} />
-                {/* ADDED: Password strength indicator (only shows when typing) */}
-                {password && <PasswordStrengthIndicator password={password} />}
               </div>
-
-              {/* ADDED: Confirm Password field */}
-              <div>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    type={showConfirmPassword ? "text" : "password"} 
-                    placeholder="Confirm Password" 
-                    className={inputCls(showError('confirmPassword'))} 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    onBlur={() => markTouched('confirmPassword')} 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <FieldError message={showError('confirmPassword')} />
-              </div>
-
               <Button type="submit" disabled={loading} className="h-11 w-full bg-accent font-heading font-semibold text-accent-foreground shadow-accent hover:bg-accent/90">
                 {loading ? 'Creating…' : 'Create Account'}
               </Button>
@@ -366,7 +229,7 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
           )}
 
           <p className="mt-5 text-center text-xs text-muted-foreground">
-            By continuing, you agree to Moghamo's Terms & Privacy Policy.
+            By continuing, you agree to BusGo's Terms & Privacy Policy.
           </p>
         </div>
       </DialogContent>

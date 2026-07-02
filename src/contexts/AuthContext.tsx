@@ -23,7 +23,7 @@ interface AuthContextType {
   panelHome: string;
   refreshRoles: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; redirectTo: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -91,8 +91,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error as Error | null };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) return { error: error as Error | null, redirectTo: '/' };
+    // Look up roles right away so we can land staff on their panel.
+    const { data: roleRows } = await supabase.from('user_roles').select('role').eq('user_id', data.user.id);
+    const r = ((roleRows ?? []).map((x) => x.role) as AppRole[]);
+    const redirectTo = r.includes('admin')
+      ? '/admin'
+      : r.includes('manager')
+        ? '/admin/schedules'
+        : r.includes('cashier')
+          ? '/admin/parcels'
+          : '/';
+    return { error: null, redirectTo };
   };
 
   const signOut = async () => {

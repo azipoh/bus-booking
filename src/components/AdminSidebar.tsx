@@ -36,6 +36,7 @@ const AdminSidebar = () => {
     if (isManager) {
       links.push(
         { to: '/admin/schedules', label: 'Schedules', icon: Calendar },
+        { to: '/admin/buses', label: 'Buses', icon: Bus },
         { to: '/admin/branch-report', label: 'Branch Report', icon: BarChart3 },
         { to: '/admin/parcels', label: 'Parcels', icon: Package },
       );

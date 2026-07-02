@@ -14,11 +14,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 type DbBus = Tables<'buses'>;
 
 const AdminBuses = () => {
   const queryClient = useQueryClient();
+  const { isAdmin, isManager, branchId } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBus, setEditingBus] = useState<DbBus | null>(null);
   const [formName, setFormName] = useState('');
@@ -29,9 +31,12 @@ const AdminBuses = () => {
   const [uploading, setUploading] = useState(false);
 
   const { data: busList = [], isLoading } = useQuery({
-    queryKey: ['admin-buses'],
+    queryKey: ['admin-buses', isAdmin ? 'all' : branchId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('buses').select('*').order('name');
+      let query = supabase.from('buses').select('*').order('name');
+      // Managers (non-admins) only see buses assigned to their branch.
+      if (!isAdmin && branchId) query = query.eq('branch_id', branchId);
+      const { data, error } = await query;
       if (error) throw error;
       return data as DbBus[];
     },
@@ -104,12 +109,18 @@ const AdminBuses = () => {
 
   const handleSave = () => {
     if (!formName || !formRegNum) { toast.error('Please fill all fields'); return; }
+    if (isManager && !isAdmin && !branchId) {
+      toast.error('You are not assigned to a branch yet.');
+      return;
+    }
     upsertMutation.mutate({
       name: formName,
       registration_number: formRegNum,
       bus_type: formType,
       total_seats: parseInt(formSeats),
-    });
+      // Managers create buses within their branch; admins create global buses.
+      ...(!editingBus && !isAdmin && branchId ? { branch_id: branchId } : {}),
+    } as Partial<DbBus> & { name: string; registration_number: string });
   };
 
   const getBusImageUrl = (bus: DbBus): string | null => {

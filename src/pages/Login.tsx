@@ -73,16 +73,13 @@ const Login = () => {
     setSubmitted(true);
     if (errors.email || errors.password) return;
     setLoading(true);
-    const { error, role, isStaff } = await signIn(email, password);
+    const { error, redirectTo } = await signIn(email, password);
     setLoading(false);
     if (error) {
       toast.error(error.message);
     } else {
       toast.success('Logged in successfully!');
-      if (role === 'cashier') navigate('/cashier/register-parcel');
-      else if (role === 'manager') navigate('/manager/branch');
-      else if (isStaff) navigate('/admin');
-      else navigate('/');
+      navigate(redirectTo);
     }
   };
 
@@ -292,7 +289,7 @@ const Login = () => {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing, you agree to Moghamo's Terms & Privacy Policy.
+          By continuing, you agree to BusGo's Terms & Privacy Policy.
         </p>
       </motion.div>
     </div>
