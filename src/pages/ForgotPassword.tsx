@@ -37,7 +37,7 @@ const ForgotPassword = () => {
             </div>
           </Link>
           <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Reset Password</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-foreground/80">
             Enter your email and we'll send you a reset link
           </p>
         </div>
@@ -49,7 +49,7 @@ const ForgotPassword = () => {
                 <Mail className="h-8 w-8 text-success" />
               </div>
               <p className="text-foreground font-medium">Check your email</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground/80">
                 We sent a password reset link to <strong>{email}</strong>
               </p>
               <Link to="/login">
@@ -67,8 +67,8 @@ const ForgotPassword = () => {
               <Button type="submit" disabled={loading} className="w-full bg-primary font-heading font-semibold text-primary-foreground hover:bg-primary/90">
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </Button>
-              <p className="text-center text-sm text-muted-foreground">
-                <Link to="/login" className="font-medium text-accent hover:underline">
+              <p className="text-center text-sm text-foreground/80">
+                <Link to="/login" className="font-semibold text-primary hover:text-primary/80 hover:underline">
                   ← Back to Login
                 </Link>
               </p>

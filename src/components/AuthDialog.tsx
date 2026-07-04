@@ -83,7 +83,7 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
     else {
       toast.success('Logged in successfully!');
       onOpenChange(false);
-      navigate(redirectTo);
+      navigate(redirectTo, { replace: true });
     }
   };
 
@@ -218,18 +218,18 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
                 <FieldError message={showError('password')} />
               </div>
               <div className="flex justify-end">
-                <Link to="/forgot-password" onClick={() => onOpenChange(false)} className="text-xs font-medium text-accent hover:underline">
+                <Link to="/forgot-password" onClick={() => onOpenChange(false)} className="text-sm font-semibold text-primary hover:text-primary/80 hover:underline transition-colors">
                   Forgot password?
                 </Link>
               </div>
-              <Button type="submit" disabled={loading} className="h-11 w-full bg-primary font-heading font-semibold text-primary-foreground shadow-soft hover:bg-primary/90">
+              <Button type="submit" disabled={loading} className="h-11 w-full bg-primary font-heading font-semibold text-primary-foreground hover:bg-primary/90">
                 {loading ? 'Signing in…' : 'Sign In'}
               </Button>
             </motion.form>
           )}
 
           <p className="mt-5 text-center text-xs text-muted-foreground">
-            By continuing, you agree to BusGo's Terms & Privacy Policy.
+            By continuing, you agree to Moghamo Terms & Privacy Policy.
           </p>
         </div>
       </DialogContent>

@@ -22,11 +22,10 @@ const features = [
 ];
 
 const popularRoutes = [
-  { from: 'Douala', to: 'Yaoundé', price: 5000 },
-  { from: 'Douala', to: 'Bamenda', price: 6000 },
-  { from: 'Douala', to: 'Buea', price: 2000 },
+  { from: 'Douala', to: 'Bamenda', price: 6500 },
+  { from: 'Douala', to: 'Buea', price: 2500 },
   { from: 'Douala', to: 'Limbe', price: 2000 },
-  { from: 'Yaoundé', to: 'Bamenda', price: 7000 },
+  { from: 'Yaoundé', to: 'Bamenda', price: 6500 },
   { from: 'Buea', to: 'Limbe', price: 1500 },
 ];
 

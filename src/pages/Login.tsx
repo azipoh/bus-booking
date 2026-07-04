@@ -79,7 +79,7 @@ const Login = () => {
       toast.error(error.message);
     } else {
       toast.success('Logged in successfully!');
-      navigate(redirectTo);
+      navigate(redirectTo, { replace: true });
     }
   };
 
@@ -271,16 +271,16 @@ const Login = () => {
                 <FieldError message={showError('password')} />
               </div>
               <div className="flex justify-end">
-                <Link to="/forgot-password" className="text-xs font-medium text-accent hover:underline">
-                  Forgot password?
-                </Link>
+                <Link to="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary/80 hover:underline transition-colors">
+  Forgot password?
+</Link>
               </div>
               <Button type="submit" disabled={loading} className="h-11 w-full bg-primary font-heading font-semibold text-primary-foreground shadow-soft transition-transform hover:bg-primary/90 active:scale-[0.99]">
                 {loading ? 'Signing in…' : 'Sign In'}
               </Button>
-              <p className="pt-1 text-center text-sm text-muted-foreground">
+              <p className="pt-1 text-center text-sm text-foreground/80">
                 Don't have an account?{' '}
-                <button type="button" onClick={() => navigate('/signup')} className="font-semibold text-accent hover:underline">
+                <button type="button" onClick={() => navigate('/signup')} className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors">
                   Sign Up
                 </button>
               </p>

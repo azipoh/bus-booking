@@ -72,7 +72,7 @@ const App = () => (
                 <Route path="/track-parcel" element={<TrackParcel />} />
                 <Route path="/admin/send-parcel" element={<ProtectedRoute allowedRoles={["cashier"]}><AdminLayout><SendParcel /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/my-parcels" element={<ProtectedRoute requireAdmin><AdminLayout><MyParcels /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/branches" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBranches /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/branch-report" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><BranchReport /></AdminLayout></ProtectedRoute>} />

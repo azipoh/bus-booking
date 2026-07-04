@@ -1,8 +1,9 @@
 /**
  * Admin Dashboard showing key metrics and recent bookings from the database.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { BookingWithDetails } from '@/lib/scheduleHelpers';
 import { formatDate } from '@/lib/scheduleHelpers';
 import { formatCurrency } from '@/lib/currency';
@@ -11,19 +12,33 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Ticket, DollarSign, Bus, Users, Plus, Settings, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const { isAdmin, branchId } = useAuth();
+  // Managers only see their own branch; admins see everything.
+  const scoped = !isAdmin && !!branchId;
+
+  // Name of the manager's branch (for the heading).
+  const { data: branch } = useQuery({
+    queryKey: ['dashboard-branch', branchId],
+    enabled: scoped,
+    queryFn: async () => {
+      const { data } = await supabase.from('branches').select('name, city').eq('id', branchId!).maybeSingle();
+      return data;
+    },
+  });
+
   // Fetch aggregate stats
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['admin-stats'],
+    queryKey: ['admin-stats', scoped ? branchId : 'all'],
     queryFn: async () => {
-      const [bookingsRes, busesRes] = await Promise.all([
-        supabase.from('bookings').select('id, total_fare, status, seat_numbers'),
-        supabase.from('buses').select('id, is_active'),
-      ]);
+      // Bookings are automatically branch-scoped for managers via RLS.
+      const bookingsRes = await supabase.from('bookings').select('id, total_fare, status, seat_numbers');
+      let busesQuery = supabase.from('buses').select('id, is_active');
+      if (scoped) busesQuery = busesQuery.eq('branch_id', branchId!);
+      const busesRes = await busesQuery;
+
       const bookings = bookingsRes.data || [];
       const buses = busesRes.data || [];
 
@@ -38,9 +53,9 @@ const AdminDashboard = () => {
     },
   });
 
-  // Recent bookings
+  // Recent bookings (RLS scopes these to the manager's branch automatically)
   const { data: recentBookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ['admin-recent-bookings'],
+    queryKey: ['admin-recent-bookings', scoped ? branchId : 'all'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('bookings')
@@ -54,9 +69,11 @@ const AdminDashboard = () => {
 
   // Bus fleet
   const { data: buses = [] } = useQuery({
-    queryKey: ['admin-fleet'],
+    queryKey: ['admin-fleet', scoped ? branchId : 'all'],
     queryFn: async () => {
-      const { data } = await supabase.from('buses').select('*').eq('is_active', true).limit(5);
+      let q = supabase.from('buses').select('*').eq('is_active', true);
+      if (scoped) q = q.eq('branch_id', branchId!);
+      const { data } = await q.limit(5);
       return data || [];
     },
   });
@@ -73,8 +90,16 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Manage buses, routes, schedules, and bookings</p>
+            <h1 className="font-heading text-3xl font-bold text-foreground">
+              {scoped ? 'Branch Dashboard' : 'Admin Dashboard'}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {scoped
+                ? branch
+                  ? `${branch.name} — ${branch.city}`
+                  : 'Your branch overview'
+                : 'Manage buses, routes, schedules, and bookings'}
+            </p>
           </div>
           <div className="flex gap-2">
             <Link to="/admin/buses"><Button variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Add Bus</Button></Link>
@@ -104,7 +129,7 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Bus Fleet & Recent Bookings */}
+        {/* Fleet & Recent Bookings */}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="shadow-soft">
             <CardHeader><CardTitle className="font-heading text-base">Bus Fleet</CardTitle></CardHeader>

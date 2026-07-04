@@ -55,7 +55,7 @@ const ResetPassword = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="text-center">
-          <p className="text-muted-foreground">Invalid or expired reset link.</p>
+          <p className="text-foreground/80">Invalid or expired reset link.</p>
           <Button onClick={() => navigate('/forgot-password')} className="mt-4">
             Request new link
           </Button>
@@ -72,7 +72,7 @@ const ResetPassword = () => {
             <Bus className="h-7 w-7 text-primary-foreground" />
           </div>
           <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Set New Password</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Enter your new password below</p>
+          <p className="mt-1 text-sm text-foreground/80">Enter your new password below</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elevated">
