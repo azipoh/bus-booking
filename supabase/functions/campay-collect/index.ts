@@ -18,12 +18,21 @@ Deno.serve(async (req) => {
     let authToken = permanentToken;
 
     if (!authToken) {
+      const username = Deno.env.get("CAMPAY_USERNAME");
+      const password = Deno.env.get("CAMPAY_PASSWORD");
+      if (!username || !password) {
+        return new Response(JSON.stringify({ error: "Campay credentials are not configured on this function." }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const tokenRes = await fetch(`${BASE}/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: Deno.env.get("CAMPAY_USERNAME"),
-          password: Deno.env.get("CAMPAY_PASSWORD"),
+          username,
+          password,
         }),
       });
       const tokenData = await tokenRes.json();
