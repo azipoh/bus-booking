@@ -1,6 +1,16 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PaymentModal from './PaymentModal';
+
+const { invokeMock } = vi.hoisted(() => ({ invokeMock: vi.fn() }));
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: {
+      invoke: invokeMock,
+    },
+  },
+}));
 
 const setup = () => {
   const onSuccess = vi.fn();
@@ -8,6 +18,11 @@ const setup = () => {
   render(<PaymentModal open onClose={onClose} onSuccess={onSuccess} amount={6000} />);
   return { onSuccess, onClose };
 };
+
+beforeEach(() => {
+  invokeMock.mockReset();
+  invokeMock.mockResolvedValue({ data: { success: true }, error: null });
+});
 
 describe('PaymentModal', () => {
   it('shows the provider selection step', () => {
@@ -26,12 +41,22 @@ describe('PaymentModal', () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it('proceeds to processing for a valid phone number', async () => {
+  it('calls the Campay edge function for a valid phone number', async () => {
     setup();
     fireEvent.click(screen.getByText('Orange Money'));
     const input = await screen.findByPlaceholderText('6XX XXX XXX');
     fireEvent.change(input, { target: { value: '690112233' } });
     fireEvent.click(screen.getByRole('button', { name: /Pay/i }));
-    expect(await screen.findByText(/Processing Payment/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(invokeMock).toHaveBeenCalledWith('campay-collect', {
+        body: {
+          amount: 6000,
+          phone: '237690112233',
+          description: expect.stringContaining('BusGo'),
+        },
+      });
+    });
+    expect(await screen.findByText(/Payment Successful!/i)).toBeInTheDocument();
   });
 });
