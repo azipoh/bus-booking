@@ -1,5 +1,6 @@
 /**
- * AdminUsers — admins create branch staff (managers & cashiers) and see existing staff.
+ * AdminUsers — admins create branch staff (managers & cashiers),
+ * edit them, and reassign them to different branches.
  */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,10 +12,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Loader2, Users } from 'lucide-react';
+import { UserPlus, Loader2, Users, Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+
 type Branch = Tables<'branches'>;
+type StaffRole = 'manager' | 'cashier';
+
 interface StaffRow {
   user_id: string;
   role: string;
@@ -22,15 +26,20 @@ interface StaffRow {
   phone: string | null;
   branch_id: string | null;
 }
+
 const AdminUsers = () => {
   const qc = useQueryClient();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<StaffRow | null>(null);
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'manager' | 'cashier' | ''>('');
+  const [role, setRole] = useState<StaffRole | ''>('');
   const [branchId, setBranchId] = useState('');
+
   const { data: branches = [] } = useQuery({
     queryKey: ['admin-branches'],
     queryFn: async () => {
@@ -39,7 +48,9 @@ const AdminUsers = () => {
       return (data as Branch[]) || [];
     },
   });
+
   const branchName = (id: string | null) => branches.find((b) => b.id === id)?.name ?? '—';
+
   const { data: staff = [], isLoading } = useQuery({
     queryKey: ['admin-staff'],
     queryFn: async () => {
@@ -61,6 +72,7 @@ const AdminUsers = () => {
       }) as StaffRow[];
     },
   });
+
   const create = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
@@ -73,11 +85,64 @@ const AdminUsers = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-staff'] });
       toast.success('Staff account created');
-      setDialogOpen(false);
-      setFullName(''); setEmail(''); setPhone(''); setPassword(''); setRole(''); setBranchId('');
+      setCreateOpen(false);
+      resetForm();
     },
     onError: (err: any) => toast.error(err.message || 'Failed to create staff account'),
   });
+
+  const update = useMutation({
+    mutationFn: async () => {
+      if (!editing) return;
+      // 1. Update the profile (name, phone, branch reassignment).
+      const { error: profErr } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName, phone: phone || null, branch_id: branchId })
+        .eq('id', editing.user_id);
+      if (profErr) throw profErr;
+
+      // 2. If the role changed, swap the staff role.
+      if (role && role !== editing.role) {
+        const { error: delErr } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', editing.user_id)
+          .in('role', ['manager', 'cashier']);
+        if (delErr) throw delErr;
+        const { error: insErr } = await supabase
+          .from('user_roles')
+          .upsert({ user_id: editing.user_id, role }, { onConflict: 'user_id,role' });
+        if (insErr) throw insErr;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-staff'] });
+      toast.success('Staff updated');
+      setEditOpen(false);
+      setEditing(null);
+      resetForm();
+    },
+    onError: (err: any) => toast.error(err.message || 'Failed to update staff'),
+  });
+
+  const resetForm = () => {
+    setFullName(''); setEmail(''); setPhone(''); setPassword(''); setRole(''); setBranchId('');
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setCreateOpen(true);
+  };
+
+  const openEdit = (s: StaffRow) => {
+    setEditing(s);
+    setFullName(s.full_name || '');
+    setPhone(s.phone || '');
+    setRole(s.role as StaffRole);
+    setBranchId(s.branch_id || '');
+    setEditOpen(true);
+  };
+
   const handleCreate = () => {
     if (!fullName || !email || !password || !role || !branchId) {
       toast.error('Fill all required fields');
@@ -89,6 +154,15 @@ const AdminUsers = () => {
     }
     create.mutate();
   };
+
+  const handleUpdate = () => {
+    if (!fullName || !role || !branchId) {
+      toast.error('Fill all required fields');
+      return;
+    }
+    update.mutate();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -97,9 +171,10 @@ const AdminUsers = () => {
             <h1 className="font-heading text-3xl font-bold text-foreground">Staff & Users</h1>
             <p className="text-sm text-muted-foreground">{staff.length} branch staff</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
               <Button
+                onClick={openCreate}
                 className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
                 disabled={branches.length === 0}
                 title={branches.length === 0 ? 'Create a branch first' : undefined}
@@ -131,7 +206,7 @@ const AdminUsers = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-foreground">Role *</label>
-                    <Select value={role} onValueChange={(v) => setRole(v as 'manager' | 'cashier')}>
+                    <Select value={role} onValueChange={(v) => setRole(v as StaffRole)}>
                       <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="manager">Manager</SelectItem>
@@ -160,6 +235,7 @@ const AdminUsers = () => {
             </DialogContent>
           </Dialog>
         </div>
+
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : staff.length === 0 ? (
@@ -176,6 +252,7 @@ const AdminUsers = () => {
                   <TableHead>Phone</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Branch</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -187,14 +264,67 @@ const AdminUsers = () => {
                       <Badge variant={s.role === 'manager' ? 'default' : 'secondary'} className="capitalize">{s.role}</Badge>
                     </TableCell>
                     <TableCell>{branchName(s.branch_id)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" className="gap-1" onClick={() => openEdit(s)}>
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </motion.div>
         )}
+
+        {/* Edit staff dialog */}
+        <Dialog open={editOpen} onOpenChange={(o) => { setEditOpen(o); if (!o) { setEditing(null); resetForm(); } }}>
+          <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-heading">Edit Staff</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">Full Name *</label>
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Doe" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+237..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-foreground">Role *</label>
+                  <Select value={role} onValueChange={(v) => setRole(v as StaffRole)}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="cashier">Cashier</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-foreground">Branch *</label>
+                  <Select value={branchId} onValueChange={setBranchId}>
+                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button onClick={handleUpdate} disabled={update.isPending} className="w-full bg-primary text-primary-foreground">
+                {update.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Reassign this staff member to another branch or change their role. Login email cannot be changed here.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
 };
+
 export default AdminUsers;
