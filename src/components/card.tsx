@@ -5,7 +5,6 @@ const defaultCities = [
   { id: 'douala', city: 'Douala', region: 'Coastline', agencies: 5, desc: 'Five strategic branches — Bonabéri, Bépanda, Brazzaville, Mpoppi and Village.' },
   { id: 'yaounde', city: 'Yaoundé', region: 'Center', agencies: 5, desc: 'Five agencies in the political capital, including Mvan, Carrière and Biyem-Assi.' },
   { id: 'bamenda', city: 'Bamenda', region: 'North West', agencies: 3, desc: 'Gateway to the highlands, serving Nkwen, Up Station and commercial avenue.' },
-  { id: 'bafoussam', city: 'Bafoussam', region: 'West', agencies: 2, desc: 'Crossroads of the western highlands — gateway between coast and interior.' },
   { id: 'buea', city: 'Buea', region: 'South West', agencies: 2, desc: 'At the foot of Mount Cameroon, serving university and commercial districts.' },
   { id: 'limbe', city: 'Limbe', region: 'South West', agencies: 1, desc: 'Coastal city known for its black-sand beaches and wildlife centre.' },
 ];

@@ -10,6 +10,7 @@ import {
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -18,6 +19,7 @@ type Link = { to: string; label: string; icon: typeof Bus };
 const AdminSidebar = () => {
   const { pathname } = useLocation();
   const { isAdmin, isManager, isCashier } = useAuth();
+  const { setOpenMobile } = useSidebar();
 
   const links: Link[] = [];
   if (isAdmin) {
@@ -74,7 +76,11 @@ const AdminSidebar = () => {
               {uniqueLinks.map((link) => (
                 <SidebarMenuItem key={link.to}>
                   <SidebarMenuButton asChild isActive={pathname === link.to}>
-                    <NavLink to={link.to} className="flex items-center gap-2">
+                    <NavLink
+                      to={link.to}
+                      className="flex items-center gap-2"
+                      onClick={() => setOpenMobile(false)}
+                    >
                       <link.icon className="h-4 w-4" />
                       <span>{link.label}</span>
                     </NavLink>

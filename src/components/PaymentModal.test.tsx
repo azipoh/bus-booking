@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PaymentModal from './PaymentModal';
 
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: { reference: 'ref-123' }, error: null }),
+    },
+  },
+}));
 const { invokeMock } = vi.hoisted(() => ({ invokeMock: vi.fn() }));
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -53,7 +60,7 @@ describe('PaymentModal', () => {
         body: {
           amount: 6000,
           phone: '237690112233',
-          description: expect.stringContaining('BusGo'),
+          description: expect.stringContaining('Moghamo payment'),
         },
       });
     });

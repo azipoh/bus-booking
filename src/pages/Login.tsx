@@ -128,7 +128,7 @@ const Login = () => {
             {isRegister ? 'Create your account' : 'Welcome back'}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isRegister ? 'Join BusGo and start booking in minutes' : 'Sign in to continue your journey'}
+            {isRegister ? 'Join Moghamo and start booking in minutes' : 'Sign in to continue your journey'}
           </p>
         </div>
 
@@ -289,7 +289,7 @@ const Login = () => {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          By continuing, you agree to BusGo's Terms & Privacy Policy.
+          By continuing, you agree to Moghamo's Terms & Privacy Policy.
         </p>
       </motion.div>
     </div>

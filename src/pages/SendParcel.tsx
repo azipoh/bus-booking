@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Package, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import PaymentModal from '@/components/PaymentModal';
 
 const cities = ['Douala', 'Yaoundé', 'Bamenda', 'Buea', 'Limbe'];
 
@@ -28,6 +29,7 @@ const SendParcel = () => {
   const { user, branchId, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   const [senderName, setSenderName] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
@@ -45,7 +47,7 @@ const SendParcel = () => {
 
   const fare = calculateFare(parseFloat(weight) || 0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInitiatePayment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!senderName || !senderPhone || !senderEmail || !recipientName || !recipientPhone || !recipientEmail || !origin || !destination || !weight) {
       toast.error('Please fill in all required fields, including sender and recipient emails.');
@@ -60,7 +62,11 @@ const SendParcel = () => {
       toast.error('Origin and destination must be different.');
       return;
     }
+    setShowPayment(true);
+  };
 
+  const registerParcel = async () => {
+    setShowPayment(false);
     setIsSubmitting(true);
     try {
       const trackingCode = `PCL${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -108,7 +114,7 @@ const SendParcel = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleInitiatePayment} className="space-y-6">
             {/* Sender */}
             <div className="rounded-xl border border-border bg-card p-5 shadow-soft">
               <h3 className="mb-3 font-heading text-base font-bold text-foreground">Sender Details</h3>
@@ -171,6 +177,14 @@ const SendParcel = () => {
               Register Parcel — {formatCurrency(fare)}
             </Button>
           </form>
+
+          <PaymentModal
+            open={showPayment}
+            onClose={() => setShowPayment(false)}
+            onSuccess={registerParcel}
+            amount={fare}
+            description={`Parcel ${origin} to ${destination}`}
+          />
         </motion.div>
       </div>
     </div>

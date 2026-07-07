@@ -198,8 +198,8 @@ const SeatSelection = () => {
       });
       if (error) throw error;
 
-      // Award loyalty points (1 point per 100 FCFA)
-      const pointsEarned = Math.floor(totalFare / 100);
+      // Award loyalty points (1 point per 1000 FCFA)
+      const pointsEarned = Math.floor(totalFare / 1000);
       if (pointsEarned > 0) {
         await supabase.from('loyalty_points').insert({
           user_id: user.id,
@@ -221,7 +221,7 @@ const SeatSelection = () => {
         .eq('locked_by', user.id);
 
       // Send SMS notification with in-app fallback
-      const bookingMessage = `BusGo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`;
+      const bookingMessage = `Moghamo Booking Confirmed! PNR: ${pnr}. ${schedule?.routes.origin} → ${schedule?.routes.destination} on ${formatTime(schedule?.departure_time || '')}. Seats: ${seatNumbers.join(', ')}. Fare: ${formatCurrency(totalFare)}. Non-refundable, rescheduling only.`;
       let smsSent = false;
       if (phone) {
         try {
@@ -354,7 +354,7 @@ const SeatSelection = () => {
                   <div className="border-t border-border pt-2">
                     <div className="flex items-center justify-between font-heading font-bold">
                       <span>Total</span>
-                      <span className="text-xl text-accent">{formatCurrency(totalFare)}</span>
+<span className="text-xl font-bold text-emerald-600">{formatCurrency(totalFare)}</span>
                     </div>
                   </div>
                 </div>
@@ -379,9 +379,9 @@ const SeatSelection = () => {
             </div>
 
             {selectedSeats.length > 0 && totalFare > 0 && (
-              <p className="text-center text-xs text-muted-foreground">
-                🎁 You'll earn <strong className="text-accent">{Math.floor(totalFare / 100)} points</strong> for this booking!
-              </p>
+              <p className="text-center text-sm text-foreground">
+  🎁 You'll earn <strong className="text-amber-500 font-bold text-lg">{Math.floor(totalFare / 100)} points</strong> for this booking!
+</p>
             )}
 
             <Button

@@ -26,13 +26,13 @@ const Navbar = () => {
   };
 
   const passengerLinks = [
-    { to: '/', label: 'Search', icon: Bus },
-    { to: '/track-parcel', label: 'Track Parcel', icon: MapPin },
-    ...(user ? [
-      { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
-      { to: '/profile', label: 'Profile', icon: User },
-    ] : []),
-  ];
+  { to: '/', label: 'Search', icon: Bus },
+  { to: '/track-parcel', label: 'Track Parcel', icon: MapPin, iconColor: 'text-amber-500' },
+  ...(user ? [
+    { to: '/my-bookings', label: 'My Bookings', icon: Ticket },
+    { to: '/profile', label: 'Profile', icon: User },
+  ] : []),
+];
 
   const links = isAdminRoute ? [] : passengerLinks;
 
@@ -49,19 +49,31 @@ const Navbar = () => {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Bus className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-heading text-xl font-bold text-foreground">BusGo</span>
+          <span className="font-heading text-xl font-bold text-foreground">Moghamo</span>
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
-          {links.map((link) => (
-            <Link key={link.to} to={link.to}>
-              <Button variant={location.pathname === link.to ? 'secondary' : 'ghost'} size="sm" className="gap-2">
-                <link.icon className="h-4 w-4" />
-                {link.label}
-              </Button>
-            </Link>
-          ))}
-        </div>
+        {/* Desktop Pill Navigation */}
+<div className="hidden md:flex items-center">
+  <nav className="flex items-center gap-0.5 rounded-full bg-muted p-1">
+    {links.map((link) => {
+      const isActive = location.pathname === link.to;
+      return (
+        <Link key={link.to} to={link.to}>
+          <div
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              isActive
+                ? 'bg-white dark:bg-gray-700 text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/50 dark:hover:bg-gray-700/50'
+            }`}
+          >
+            <link.icon className="h-4 w-4" />
+            {link.label}
+          </div>
+        </Link>
+      );
+    })}
+  </nav>
+</div>
 
         <div className="hidden items-center gap-2 md:flex">
           {user && isStaff && !isAdminRoute && (

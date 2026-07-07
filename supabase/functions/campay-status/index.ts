@@ -1,16 +1,11 @@
- Initiates a Campay mobile money collection (MTN MoMo / Orange Money).
-// Returns a Campay transaction `reference` the client polls for status.
+Checks the status of a Campay collection by its transaction reference.
+// Returns { status: 'SUCCESSFUL' | 'FAILED' | 'PENDING', ... }.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
-// Campay environment: "live" -> www.campay.net, "demo" -> demo.campay.net
 const CAMPAY_ENV = (Deno.env.get('CAMPAY_ENV') ?? 'live').toLowerCase();
 const BASE_URL = CAMPAY_ENV === 'demo' ? 'https://demo.campay.net' : 'https://www.campay.net';
 const BodySchema = z.object({
-  amount: z.number().positive().max(1_000_000),
-  // 9-digit Cameroon number starting with 6 (no country code, no spaces)
-  phone: z.string().regex(/^6\d{8}$/),
-  description: z.string().max(255).optional(),
-  external_reference: z.string().max(255).optional(),
+  reference: z.string().min(1).max(255),
 });
 async function getToken(username: string, password: string): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/token/`, {
@@ -44,34 +39,26 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-    const { amount, phone, description, external_reference } = parsed.data;
+    const { reference } = parsed.data;
     const token = await getToken(username, password);
-    const collectRes = await fetch(`${BASE_URL}/api/collect/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
-      body: JSON.stringify({
-        amount: String(Math.round(amount)),
-        currency: 'XAF',
-        from: `237${phone}`,
-        description: description ?? 'Payment',
-        external_reference: external_reference ?? '',
-      }),
+    const statusRes = await fetch(`${BASE_URL}/api/transaction/${encodeURIComponent(reference)}/`, {
+      method: 'GET',
+      headers: { Authorization: `Token ${token}` },
     });
-    const collectBody = await collectRes.text();
-    if (!collectRes.ok) {
-      console.error(`Campay collect failed [${collectRes.status}]: ${collectBody}`);
+    const body = await statusRes.text();
+    if (!statusRes.ok) {
+      console.error(`Campay status failed [${statusRes.status}]: ${body}`);
       return new Response(
-        JSON.stringify({ error: 'Collection request failed', status: collectRes.status, details: collectBody }),
-        { status: collectRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: 'Status request failed', status: statusRes.status, details: body }),
+        { status: statusRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-    const data = JSON.parse(collectBody);
-    return new Response(JSON.stringify(data), {
+    return new Response(body, {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('campay-collect error:', err instanceof Error ? err.message : err);
+    console.error('campay-status error:', err instanceof Error ? err.message : err);
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Unexpected error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

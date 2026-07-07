@@ -112,7 +112,7 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
       <DialogContent className="max-w-md border-border/70 bg-card/95 p-0 backdrop-blur-sm">
         <DialogTitle className="sr-only">{isRegister ? 'Create account' : 'Sign in'}</DialogTitle>
         <DialogDescription className="sr-only">
-          {isRegister ? 'Create your BusGo account' : 'Sign in to your BusGo account'}
+          {isRegister ? 'Create your Moghamo account' : 'Sign in to your Moghamo account'}
         </DialogDescription>
 
         <div className="p-7">
@@ -124,7 +124,7 @@ const AuthDialog = ({ open, onOpenChange, initialMode = 'login' }: Props) => {
               {isRegister ? 'Create your account' : 'Welcome back'}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {isRegister ? 'Join BusGo and start booking in minutes' : 'Sign in to continue your journey'}
+              {isRegister ? 'Join Moghamo and start booking in minutes' : 'Sign in to continue your journey'}
             </p>
           </div>
 

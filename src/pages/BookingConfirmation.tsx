@@ -26,7 +26,7 @@ interface BookingState {
 const generateTicketPDF = (booking: BookingState) => {
   const ticketContent = `
 ========================================
-          BUSGO E-TICKET
+          MOGHAMO E-TICKET
 ========================================
 
 PNR: ${booking.pnr}
@@ -51,7 +51,7 @@ This ticket is NON-REFUNDABLE.
 It can only be RESCHEDULED to another trip.
 Please present this e-ticket at boarding.
 
-Thank you for choosing BusGo!
+Thank you for choosing Moghamo!
 © 2026 Moghamo — Cameroon
 ========================================
 `;
@@ -60,7 +60,7 @@ Thank you for choosing BusGo!
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `BusGo-Ticket-${booking.pnr}.txt`;
+  a.download = `Moghamo-Ticket-${booking.pnr}.txt`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -117,7 +117,7 @@ const BookingConfirmation = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bus className="h-5 w-5 text-primary-foreground" />
-                <span className="font-heading font-bold text-primary-foreground">BusGo</span>
+                <span className="font-heading font-bold text-primary-foreground">Moghamo</span>
               </div>
               <span className="rounded-md bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">
                 E-TICKET

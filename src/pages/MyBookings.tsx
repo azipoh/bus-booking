@@ -29,7 +29,7 @@ const downloadTicket = (booking: BookingWithDetails) => {
   const s = booking.schedules;
   const content = `
 ========================================
-          BUSGO E-TICKET
+          MOGHAMO E-TICKET
 ========================================
 
 PNR: ${booking.pnr}
@@ -49,14 +49,14 @@ STATUS: ${booking.status.toUpperCase()}
 ========================================
 This ticket is NON-REFUNDABLE.
 It can only be RESCHEDULED.
-© 2026 BusGo — Cameroon
+© 2026 Moghamo — Cameroon
 ========================================
 `;
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `BusGo-${booking.pnr}.txt`;
+  a.download = `Moghamo-${booking.pnr}.txt`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

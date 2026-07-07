@@ -1,12 +1,14 @@
 /**
- * Mobile Money payment modal for Campay-backed collections.
+ * Mobile Money payment modal (MTN MoMo / Orange Money) powered by Campay.
+ * Initiates a real collection, then polls the transaction status until it
+ * completes. Calls onSuccess only when Campay confirms the payment.
  */
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currency';
-import { Loader2, CheckCircle2, Smartphone, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Smartphone, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paymentSchema } from '@/lib/validation';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,29 +18,78 @@ interface PaymentModalProps {
   onClose: () => void;
   onSuccess: () => void;
   amount: number;
+  /** Optional label shown to the payer / stored on the Campay transaction */
+  description?: string;
 }
 
 type PaymentProvider = 'mtn' | 'orange';
-type PaymentStep = 'select' | 'enter' | 'processing' | 'success' | 'error';
+type PaymentStep = 'select' | 'enter' | 'processing' | 'success' | 'failed';
 
-const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) => {
+// Poll status for up to ~2 minutes (Campay prompts time out around there).
+const POLL_INTERVAL_MS = 4000;
+const MAX_POLLS = 30;
+
+const PaymentModal = ({ open, onClose, onSuccess, amount, description }: PaymentModalProps) => {
   const [provider, setProvider] = useState<PaymentProvider | null>(null);
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState<PaymentStep>('select');
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelled = useRef(false);
+
+  const clearPoll = () => {
+    if (pollTimer.current) clearTimeout(pollTimer.current);
+    pollTimer.current = null;
+  };
+
+  useEffect(() => () => clearPoll(), []);
 
   const reset = () => {
+    clearPoll();
+    cancelled.current = false;
     setProvider(null);
     setPhone('');
     setStep('select');
     setPhoneError(null);
-    setStatusMessage(null);
+    setErrorMsg(null);
   };
 
   const handleClose = () => {
+    cancelled.current = true;
     reset();
     onClose();
+  };
+
+  const pollStatus = async (reference: string, attempt: number) => {
+    if (cancelled.current) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('campay-status', {
+        body: { reference },
+      });
+      if (error) throw error;
+      const status = String(data?.status ?? '').toUpperCase();
+
+      if (status === 'SUCCESSFUL') {
+        setStep('success');
+        setTimeout(() => { if (!cancelled.current) { reset(); onSuccess(); } }, 1500);
+        return;
+      }
+      if (status === 'FAILED') {
+        setErrorMsg('Payment was declined or cancelled. Please try again.');
+        setStep('failed');
+        return;
+      }
+    } catch (_err) {
+      // Transient error — keep polling until we hit the cap.
+    }
+
+    if (attempt >= MAX_POLLS) {
+      setErrorMsg('Payment timed out. If you were charged, contact support.');
+      setStep('failed');
+      return;
+    }
+    pollTimer.current = setTimeout(() => pollStatus(reference, attempt + 1), POLL_INTERVAL_MS);
   };
 
   const handlePay = async () => {
@@ -47,37 +98,23 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
       setPhoneError(result.error.issues[0]?.message ?? 'Invalid payment details');
       return;
     }
-
     setPhoneError(null);
+    setErrorMsg(null);
+    cancelled.current = false;
     setStep('processing');
-    setStatusMessage('Connecting to Campay...');
 
     try {
-      const formattedPhone = `237${phone}`;
       const { data, error } = await supabase.functions.invoke('campay-collect', {
-        body: {
-          amount,
-          phone: formattedPhone,
-          description: `BusGo booking payment of ${formatCurrency(amount)}`,
-        },
+        body: { amount, phone, description: description ?? 'BusGo payment' },
       });
-
       if (error) throw error;
-
-      const paymentSuccess = Boolean(data?.success || data?.status === 'success' || data?.status === 'pending');
-      if (!paymentSuccess) {
-        throw new Error(data?.message || data?.error || 'Campay payment could not be initiated');
+      if (data?.error || !data?.reference) {
+        throw new Error(data?.error ?? 'Could not start the payment');
       }
-
-      setStatusMessage(data?.message || 'Payment request sent. Please confirm on your phone.');
-      setStep('success');
-      window.setTimeout(() => {
-        reset();
-        onSuccess();
-      }, 1500);
-    } catch (err: any) {
-      setStep('error');
-      setStatusMessage(err.message || 'Unable to start Campay payment.');
+      pollStatus(data.reference as string, 0);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Could not start the payment. Please try again.');
+      setStep('failed');
     }
   };
 
@@ -158,7 +195,7 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
                     <span className="flex items-center rounded-lg border border-border bg-muted px-3 text-sm text-muted-foreground">+237</span>
                     <Input
                       type="tel"
-                      placeholder={provider === 'mtn' ? '6XX XXX XXX' : '6XX XXX XXX'}
+                      placeholder="6XX XXX XXX"
                       value={phone}
                       onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 9)); setPhoneError(null); }}
                       className="bg-background"
@@ -197,9 +234,9 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
               >
                 <Loader2 className="h-12 w-12 animate-spin text-accent" />
                 <div className="text-center">
-                  <p className="font-heading font-bold text-foreground">Processing Payment...</p>
+                  <p className="font-heading font-bold text-foreground">Waiting for Confirmation...</p>
                   <p className="text-sm text-muted-foreground">
-                    {statusMessage || 'Please confirm the payment on your phone'}
+                    Check your phone and enter your PIN to approve the payment of {formatCurrency(amount)}.
                   </p>
                 </div>
               </motion.div>
@@ -218,27 +255,30 @@ const PaymentModal = ({ open, onClose, onSuccess, amount }: PaymentModalProps) =
                 <div className="text-center">
                   <p className="font-heading font-bold text-foreground">Payment Successful!</p>
                   <p className="text-sm text-muted-foreground">
-                    {statusMessage || `${formatCurrency(amount)} received via ${provider === 'mtn' ? 'MTN MoMo' : 'Orange Money'}`}
+                    {formatCurrency(amount)} received via {provider === 'mtn' ? 'MTN MoMo' : 'Orange Money'}
                   </p>
                 </div>
               </motion.div>
             )}
 
-            {step === 'error' && (
+            {step === 'failed' && (
               <motion.div
-                key="error"
-                initial={{ opacity: 0, scale: 0.95 }}
+                key="failed"
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center gap-4 py-8"
               >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                  <AlertCircle className="h-10 w-10 text-destructive" />
+                  <XCircle className="h-10 w-10 text-destructive" />
                 </div>
                 <div className="text-center">
-                  <p className="font-heading font-bold text-foreground">Payment Could Not Be Started</p>
-                  <p className="text-sm text-muted-foreground">{statusMessage}</p>
+                  <p className="font-heading font-bold text-foreground">Payment Not Completed</p>
+                  <p className="text-sm text-muted-foreground">{errorMsg ?? 'Something went wrong. Please try again.'}</p>
                 </div>
-                <Button variant="outline" onClick={() => setStep('enter')} className="w-full">
+                <Button
+                  onClick={() => { setStep('enter'); setErrorMsg(null); }}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
                   Try Again
                 </Button>
               </motion.div>

@@ -193,7 +193,7 @@ const AdminUsers = () => {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">Email *</label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@busgo.cm" />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@moghamo.cm" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
