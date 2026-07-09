@@ -2,6 +2,7 @@
  * Vertical, collapsible sidebar for the staff panel.
  * Links are shown based on the signed-in user's role.
  */
+import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Bus, Calendar, Ticket, Package, Settings,
@@ -20,6 +21,11 @@ const AdminSidebar = () => {
   const { pathname } = useLocation();
   const { isAdmin, isManager, isCashier } = useAuth();
   const { setOpenMobile } = useSidebar();
+
+  // Close mobile sidebar when navigation occurs
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
 
   const links: Link[] = [];
   if (isAdmin) {
@@ -79,7 +85,6 @@ const AdminSidebar = () => {
                     <NavLink
                       to={link.to}
                       className="flex items-center gap-2"
-                      onClick={() => setOpenMobile(false)}
                     >
                       <link.icon className="h-4 w-4" />
                       <span>{link.label}</span>

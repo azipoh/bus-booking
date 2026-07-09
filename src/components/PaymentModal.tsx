@@ -128,7 +128,7 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
         <div className="py-2">
           <div className="mb-4 rounded-lg bg-muted p-3 text-center">
             <p className="text-xs text-muted-foreground">Amount to Pay</p>
-            <p className="font-heading text-2xl font-bold text-accent">{formatCurrency(amount)}</p>
+            <p className="font-heading text-2xl font-bold text-primary">{formatCurrency(amount)}</p>
           </div>
 
           <AnimatePresence mode="wait">

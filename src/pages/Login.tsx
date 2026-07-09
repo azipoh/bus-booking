@@ -14,7 +14,10 @@ import { useAuth } from '@/contexts/AuthContext';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9\s-]{7,20}$/;
 
-type Errors = Partial<Record<'email' | 'password' | 'fullName' | 'phone', string>>;
+// Password strength validation: min 8 chars, at least one uppercase, lowercase, number, and special char
+const PASSWORD_STRENGTH_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+type Errors = Partial<Record<'email' | 'password' | 'confirmPassword' | 'fullName' | 'phone', string>>;
 
 const FieldError = ({ message }: { message?: string }) =>
   message ? (
@@ -35,6 +38,11 @@ const Login = () => {
 
   useEffect(() => {
     setIsRegister(location.pathname === '/signup');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setFullName('');
+    setPhone('');
     setTouched({});
     setSubmitted(false);
   }, [location.pathname]);
@@ -42,6 +50,7 @@ const Login = () => {
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -51,16 +60,28 @@ const Login = () => {
     else if (!EMAIL_RE.test(email.trim())) e.email = 'Enter a valid email address';
 
     if (!password) e.password = 'Password is required';
-    else if (isRegister && password.length < 6) e.password = 'Password must be at least 6 characters';
+    else if (isRegister) {
+      if (password.length < 8) {
+        e.password = 'Password must be at least 8 characters';
+      } else if (!PASSWORD_STRENGTH_RE.test(password)) {
+        e.password = 'Password must contain uppercase, lowercase, number, and special character (@$!%*?&)';
+      }
+    }
 
     if (isRegister) {
+      if (!confirmPassword) {
+        e.confirmPassword = 'Confirm password is required';
+      } else if (password !== confirmPassword) {
+        e.confirmPassword = 'Passwords do not match';
+      }
+
       if (!fullName.trim()) e.fullName = 'Full name is required';
       else if (fullName.trim().length < 2) e.fullName = 'Name must be at least 2 characters';
 
       if (phone && !PHONE_RE.test(phone.trim())) e.phone = 'Enter a valid phone number';
     }
     return e;
-  }, [email, password, fullName, phone, isRegister]);
+  }, [email, password, confirmPassword, fullName, phone, isRegister]);
 
   const showError = (field: keyof Errors) =>
     (touched[field] || submitted) ? errors[field] : undefined;
@@ -210,7 +231,7 @@ const Login = () => {
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="password"
-                    placeholder="Password (min 6 chars)"
+                    placeholder="Password (min 8 chars, uppercase, lowercase, number, special char)"
                     className={inputCls(showError('password'))}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -219,6 +240,21 @@ const Login = () => {
                   />
                 </div>
                 <FieldError message={showError('password')} />
+              </div>
+              <div>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Confirm Password"
+                    className={inputCls(showError('confirmPassword'))}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={() => markTouched('confirmPassword')}
+                    aria-invalid={!!showError('confirmPassword')}
+                  />
+                </div>
+                <FieldError message={showError('confirmPassword')} />
               </div>
               <Button type="submit" disabled={loading} className="h-11 w-full bg-accent font-heading font-semibold text-accent-foreground shadow-accent transition-transform hover:bg-accent/90 active:scale-[0.99]">
                 {loading ? 'Creating…' : 'Create Account'}
