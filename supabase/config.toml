@@ -5,3 +5,7 @@ verify_jwt = false
 
 [functions.send-sms]
 verify_jwt = false
+[functions.campay-collect]
+verify_jwt = false
+[functions.campay-status]
+verify_jwt = false

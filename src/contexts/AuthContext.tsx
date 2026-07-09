@@ -12,6 +12,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  /** true while the signed-in user's roles/branch are still being fetched */
+  rolesLoading: boolean;
   roles: AppRole[];
   branchId: string | null;
   isAdmin: boolean;
@@ -33,17 +35,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [branchId, setBranchId] = useState<string | null>(null);
 
   // Load the user's roles and branch assignment.
+  // Roles and branch are fetched independently so a failure in one
+  // (e.g. a database missing the branch_id column) never blocks the other.
   const loadRolesAndBranch = useCallback(async (userId: string) => {
-    const [{ data: roleRows }, { data: profile }] = await Promise.all([
-      supabase.from('user_roles').select('role').eq('user_id', userId),
-      supabase.from('profiles').select('branch_id').eq('id', userId).maybeSingle(),
-    ]);
-    setRoles(((roleRows ?? []).map((r) => r.role) as AppRole[]));
-    setBranchId((profile as { branch_id: string | null } | null)?.branch_id ?? null);
+    setRolesLoading(true);
+    try {
+      const { data: roleRows, error: roleErr } = await supabase
+        .from('user_roles').select('role').eq('user_id', userId);
+      if (roleErr) console.error('Failed to load roles:', roleErr.message);
+      setRoles(((roleRows ?? []).map((r) => r.role) as AppRole[]));
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles').select('branch_id').eq('id', userId).maybeSingle();
+        setBranchId((profile as { branch_id: string | null } | null)?.branch_id ?? null);
+      } catch (err) {
+        console.error('Failed to load branch:', err);
+        setBranchId(null);
+      }
+    } finally {
+      setRolesLoading(false);
+    }
   }, []);
 
   const refreshRoles = useCallback(async () => {
@@ -61,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setRoles([]);
         setBranchId(null);
+        setRolesLoading(false);
       }
       setLoading(false);
     });
@@ -71,6 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         loadRolesAndBranch(session.user.id);
+      } else {
+        setRolesLoading(false);
       }
       setLoading(false);
     });
@@ -93,18 +113,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) return { error: error as Error | null, redirectTo: '/' };
+
     // Look up roles right away so we can land staff on their panel.
-    const { data: roleRows } = await supabase.from('user_roles').select('role').eq('user_id', data.user.id);
-    const r = ((roleRows ?? []).map((x) => x.role) as AppRole[]);
+    // Retry a couple of times: right after sign-in the auth token can take a
+    // beat to attach to the client, which would otherwise return no rows and
+    // bounce a staff member to the public home page.
+    let r: AppRole[] = [];
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: roleRows, error: roleErr } = await supabase
+        .from('user_roles').select('role').eq('user_id', data.user.id);
+      if (!roleErr && roleRows && roleRows.length > 0) {
+        r = roleRows.map((x) => x.role) as AppRole[];
+        break;
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+
     const redirectTo = r.includes('admin')
       ? '/admin'
       : r.includes('manager')
-        ? '/admin/schedules'
+        ? '/admin'
         : r.includes('cashier')
           ? '/admin/parcels'
           : '/';
     return { error: null, redirectTo };
   };
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -116,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isManager = roles.includes('manager');
   const isCashier = roles.includes('cashier');
   const isStaff = isAdmin || isManager || isCashier;
-  const panelHome = isAdmin ? '/admin' : isManager ? '/admin/schedules' : isCashier ? '/admin/parcels' : '/';
+  const panelHome = isAdmin ? '/admin' : isManager ? '/admin' : isCashier ? '/admin/parcels' : '/';
 
   return (
     <AuthContext.Provider
@@ -124,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         session,
         loading,
+        rolesLoading,
         roles,
         branchId,
         isAdmin,
