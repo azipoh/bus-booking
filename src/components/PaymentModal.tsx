@@ -4,7 +4,7 @@
  * completes. Calls onSuccess only when Campay confirms the payment.
  */
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currency';
@@ -123,6 +123,9 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-heading text-xl">Mobile Money Payment</DialogTitle>
+          <DialogDescription>
+            Pay securely with MTN Mobile Money or Orange Money. You will receive a prompt on your phone to confirm.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-2">

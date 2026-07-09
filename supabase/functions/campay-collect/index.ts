@@ -1,6 +1,14 @@
- Initiates a Campay mobile money collection (MTN MoMo / Orange Money).
+// Initiates a Campay mobile money collection (MTN MoMo / Orange Money).
 // Returns a Campay transaction `reference` the client polls for status.
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') ?? '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+}
 import { z } from 'npm:zod@3';
 // Campay environment: "live" -> www.campay.net, "demo" -> demo.campay.net
 const CAMPAY_ENV = (Deno.env.get('CAMPAY_ENV') ?? 'live').toLowerCase();
@@ -27,21 +35,23 @@ async function getToken(username: string, password: string): Promise<string> {
   return data.token as string;
 }
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: getCorsHeaders(req) });
+  }
   try {
     const username = Deno.env.get('CAMPAY_USERNAME');
     const password = Deno.env.get('CAMPAY_PASSWORD');
     if (!username || !password) {
       return new Response(
         JSON.stringify({ error: 'Campay credentials are not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
       return new Response(
         JSON.stringify({ error: 'Invalid request', details: parsed.error.flatten().fieldErrors }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
     const { amount, phone, description, external_reference } = parsed.data;
@@ -62,19 +72,19 @@ Deno.serve(async (req) => {
       console.error(`Campay collect failed [${collectRes.status}]: ${collectBody}`);
       return new Response(
         JSON.stringify({ error: 'Collection request failed', status: collectRes.status, details: collectBody }),
-        { status: collectRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: collectRes.status, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
     const data = JSON.parse(collectBody);
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     });
   } catch (err) {
     console.error('campay-collect error:', err instanceof Error ? err.message : err);
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Unexpected error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
     );
   }
 });

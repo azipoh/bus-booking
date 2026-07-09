@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bus, User, LayoutDashboard, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
+import { Bus, User, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,14 +76,7 @@ const Navbar = () => {
 </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          {user && isStaff && !isAdminRoute && (
-            <Link to={panelHome}>
-              <Button variant="outline" size="sm" className="gap-2">
-                <LayoutDashboard className="h-4 w-4" />
-                Staff Panel
-              </Button>
-            </Link>
-          )}
+          {/* Removed Staff Panel button: admins now go straight to admin routes */}
           {!loading && (user ? (
             <Button size="sm" variant="outline" className="gap-2" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" /> Logout
@@ -118,14 +111,7 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="mt-2 border-t border-border pt-2">
-                {user && isStaff && !isAdminRoute && (
-                  <Link to={panelHome} onClick={() => setMobileOpen(false)}>
-                    <Button variant="outline" className="mb-2 w-full gap-2">
-                      <LayoutDashboard className="h-4 w-4" />
-                      Staff Panel
-                    </Button>
-                  </Link>
-                )}
+                {/* Mobile: Staff Panel removed */}
                 {user ? (
                   <Button variant="outline" className="w-full gap-2" onClick={() => { handleSignOut(); setMobileOpen(false); }}>
                     <LogOut className="h-4 w-4" /> Logout
