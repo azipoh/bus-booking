@@ -105,7 +105,11 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
 
     try {
       const { data, error } = await supabase.functions.invoke('campay-collect', {
-        body: { amount, phone, description: description ?? 'BusGo payment' },
+        body: {
+          amount,
+          phone: `237${phone}`,
+          description: description ?? 'Moghamo payment',
+        },
       });
       if (error) throw error;
       if (data?.error || !data?.reference) {

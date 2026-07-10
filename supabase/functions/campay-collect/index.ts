@@ -13,10 +13,25 @@ import { z } from 'npm:zod@3';
 // Campay environment: "live" -> www.campay.net, "demo" -> demo.campay.net
 const CAMPAY_ENV = (Deno.env.get('CAMPAY_ENV') ?? 'live').toLowerCase();
 const BASE_URL = CAMPAY_ENV === 'demo' ? 'https://demo.campay.net' : 'https://www.campay.net';
+function normalizePhone(value: string) {
+  const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('237')) return digits.slice(3);
+  if (digits.startsWith('0')) return digits.slice(1);
+  return digits;
+}
+function generateExternalReference() {
+  return `busgo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
 const BodySchema = z.object({
   amount: z.number().positive().max(1_000_000),
-  // 9-digit Cameroon number starting with 6 (no country code, no spaces)
-  phone: z.string().regex(/^6\d{8}$/),
+  // Accept local Cameroon numbers like 6XXXXXXXX or E.164 numbers like 2376XXXXXXXX.
+  phone: z
+    .string()
+    .trim()
+    .refine((value) => /^6\d{8}$/.test(value) || /^\+?2376\d{8}$/.test(value), {
+      message: 'Phone must be a Cameroon mobile number',
+    })
+    .transform((value) => normalizePhone(value)),
   description: z.string().max(255).optional(),
   external_reference: z.string().max(255).optional(),
 });
@@ -67,23 +82,30 @@ Deno.serve(async (req) => {
     }
     const { amount, phone, description, external_reference } = parsed.data;
     const token = await getToken(username, password);
-    const collectRes = await fetch(`${BASE_URL}/api/collect/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
-      body: JSON.stringify({
-        amount: String(Math.round(amount)),
-        currency: 'XAF',
-        from: `237${phone}`,
-        description: description ?? 'Payment',
-        external_reference: external_reference ?? '',
-      }),
-    });
-    const collectBody = await collectRes.text();
-    if (!collectRes.ok) {
-      console.error(`Campay collect failed [${collectRes.status}]: ${collectBody}`);
+    const normalizedPhone = normalizePhone(phone);
+    let collectRes: Response | undefined;
+    let collectBody = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const reference = (external_reference ?? '').trim() || (attempt === 0 ? generateExternalReference() : generateExternalReference());
+      collectRes = await fetch(`${BASE_URL}/api/collect/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
+        body: JSON.stringify({
+          amount: String(Math.round(amount)),
+          currency: 'XAF',
+          from: `237${normalizedPhone}`,
+          description: description ?? 'Moghamo payment',
+          external_reference: reference,
+        }),
+      });
+      collectBody = await collectRes.text();
+      if (collectRes.ok || collectRes.status !== 409) break;
+    }
+    if (!collectRes?.ok) {
+      console.error(`Campay collect failed [${collectRes?.status ?? 500}]: ${collectBody}`);
       return new Response(
-        JSON.stringify({ error: 'Collection request failed', status: collectRes.status, details: collectBody }),
-        { status: collectRes.status, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: 'Collection request failed', status: collectRes?.status ?? 500, details: collectBody }),
+        { status: collectRes?.status ?? 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
     const data = JSON.parse(collectBody);

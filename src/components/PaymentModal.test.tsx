@@ -28,7 +28,12 @@ const setup = () => {
 
 beforeEach(() => {
   invokeMock.mockReset();
-  invokeMock.mockResolvedValue({ data: { success: true }, error: null });
+  invokeMock.mockImplementation(async (name: string) => {
+    if (name === 'campay-collect') {
+      return { data: { reference: 'ref-123' }, error: null };
+    }
+    return { data: { status: 'SUCCESSFUL' }, error: null };
+  });
 });
 
 describe('PaymentModal', () => {

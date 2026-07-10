@@ -1,4 +1,4 @@
-Checks the status of a Campay collection by its transaction reference.
+// Checks the status of a Campay collection by its transaction reference.
 // Returns { status: 'SUCCESSFUL' | 'FAILED' | 'PENDING', ... }.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3';
