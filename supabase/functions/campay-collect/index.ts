@@ -47,7 +47,18 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
-    const parsed = BodySchema.safeParse(await req.json());
+    const text = await req.text();
+    console.log('campay-collect request body:', text);
+    let parsed;
+    try {
+      parsed = BodySchema.safeParse(JSON.parse(text));
+    } catch (e) {
+      console.error('campay-collect invalid JSON body:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+      );
+    }
     if (!parsed.success) {
       return new Response(
         JSON.stringify({ error: 'Invalid request', details: parsed.error.flatten().fieldErrors }),
