@@ -42,13 +42,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Load the user's roles and branch assignment.
   // Roles and branch are fetched independently so a failure in one
   // (e.g. a database missing the branch_id column) never blocks the other.
-  const loadRolesAndBranch = useCallback(async (userId: string) => {
+  const loadRolesAndBranch = useCallback(async (userId: string): Promise<AppRole[]> => {
     setRolesLoading(true);
+    let loadedRoles: AppRole[] = [];
     try {
-      const { data: roleRows, error: roleErr } = await supabase
-        .from('user_roles').select('role').eq('user_id', userId);
-      if (roleErr) console.error('Failed to load roles:', roleErr.message);
-      setRoles(((roleRows ?? []).map((r) => r.role) as AppRole[]));
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data: roleRows, error: roleErr } = await supabase
+          .from('user_roles').select('role').eq('user_id', userId);
+
+        if (!roleErr && roleRows && roleRows.length > 0) {
+          loadedRoles = roleRows.map((r) => r.role) as AppRole[];
+          break;
+        }
+
+        if (roleErr) console.error('Failed to load roles:', roleErr.message);
+        if (attempt < 2) await new Promise((res) => setTimeout(res, 250));
+      }
+
+      setRoles(loadedRoles);
 
       try {
         const { data: profile } = await supabase
@@ -61,6 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setRolesLoading(false);
     }
+
+    return loadedRoles;
   }, []);
 
   const refreshRoles = useCallback(async () => {
@@ -114,26 +127,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) return { error: error as Error | null, redirectTo: '/' };
 
-    // Look up roles right away so we can land staff on their panel.
-    // Retry a couple of times: right after sign-in the auth token can take a
-    // beat to attach to the client, which would otherwise return no rows and
-    // bounce a staff member to the public home page.
-    let r: AppRole[] = [];
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const { data: roleRows, error: roleErr } = await supabase
-        .from('user_roles').select('role').eq('user_id', data.user.id);
-      if (!roleErr && roleRows && roleRows.length > 0) {
-        r = roleRows.map((x) => x.role) as AppRole[];
-        break;
-      }
-      await new Promise((res) => setTimeout(res, 250));
-    }
-
-    const redirectTo = r.includes('admin')
+    // Load the user's roles immediately so we can redirect staff members correctly.
+    const userRoles = await loadRolesAndBranch(data.user.id);
+    const redirectTo = userRoles.includes('admin')
       ? '/admin'
-      : r.includes('manager')
+      : userRoles.includes('manager')
         ? '/admin'
-        : r.includes('cashier')
+        : userRoles.includes('cashier')
           ? '/admin/parcels'
           : '/';
     return { error: null, redirectTo };
