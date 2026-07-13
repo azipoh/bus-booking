@@ -4,12 +4,16 @@
  */
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/AdminSidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
   children: React.ReactNode;
 }
 
 const AdminLayout = ({ children }: Props) => {
+  const { isAdmin, isManager } = useAuth();
+  const panelLabel = isAdmin ? 'Admin Panel' : isManager ? 'Manager Panel' : 'Staff Panel';
+
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-[calc(100vh-4rem)] w-full">
@@ -18,7 +22,7 @@ const AdminLayout = ({ children }: Props) => {
           <header className="flex h-12 items-center gap-2 border-b border-border bg-card/50 px-4">
             <SidebarTrigger />
             <span className="font-heading text-sm font-semibold text-muted-foreground">
-              Admin Panel
+              {panelLabel}
             </span>
           </header>
           <main className="flex-1">{children}</main>
