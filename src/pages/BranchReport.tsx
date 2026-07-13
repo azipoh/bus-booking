@@ -1,5 +1,5 @@
 /**
- * BranchReport — managers view a performance summary for their own branch:
+ * Manager Branch Report — managers view a performance summary for their own branch:
  * schedules, tickets sold, ticket revenue, and parcels.
  */
 import { useQuery } from '@tanstack/react-query';
@@ -84,7 +84,7 @@ const BranchReport = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="font-heading text-3xl font-bold text-foreground">Branch Report</h1>
+          <h1 className="font-heading text-3xl font-bold text-foreground">Manager Branch Report</h1>
           <p className="text-sm text-muted-foreground">
             {branch ? `${branch.name} — ${branch.city}` : 'Your branch performance summary'}
           </p>

@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const redirectTo = userRoles.includes('admin')
       ? '/admin'
       : userRoles.includes('manager')
-        ? '/admin'
+        ? '/admin/branch-report'
         : userRoles.includes('cashier')
           ? '/admin/parcels'
           : '/';
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isManager = roles.includes('manager');
   const isCashier = roles.includes('cashier');
   const isStaff = isAdmin || isManager || isCashier;
-  const panelHome = isAdmin ? '/admin' : isManager ? '/admin' : isCashier ? '/admin/parcels' : '/';
+  const panelHome = isAdmin ? '/admin' : isManager ? '/admin/branch-report' : isCashier ? '/admin/parcels' : '/';
 
   return (
     <AuthContext.Provider
