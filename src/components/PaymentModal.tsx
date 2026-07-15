@@ -69,14 +69,26 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       });
       if (error) throw error;
       const status = String(data?.status ?? '').toUpperCase();
+      const simulated = Boolean(data?.simulated);
+      const message = typeof data?.message === 'string' ? data.message : '';
 
-      if (status === 'SUCCESSFUL') {
+      if (status === 'SUCCESSFUL' && !simulated) {
         setStep('success');
         setTimeout(() => { if (!cancelled.current) { reset(); onSuccess(); } }, 1500);
         return;
       }
+      if (status === 'SUCCESSFUL' && simulated) {
+        setErrorMsg(message || 'This payment was simulated and no mobile money prompt was sent.');
+        setStep('failed');
+        return;
+      }
       if (status === 'FAILED') {
         setErrorMsg('Payment was declined or cancelled. Please try again.');
+        setStep('failed');
+        return;
+      }
+      if (status === 'PENDING') {
+        setErrorMsg(message || 'Your mobile money payment is still pending. Please approve the prompt or try again.');
         setStep('failed');
         return;
       }
@@ -114,6 +126,13 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       if (error) throw error;
       if (data?.error || !data?.reference) {
         throw new Error(data?.error ?? 'Could not start the payment');
+      }
+      const simulated = Boolean(data?.simulated);
+      const message = typeof data?.message === 'string' ? data.message : '';
+      if (simulated) {
+        setErrorMsg(message || 'This payment was simulated and no mobile money prompt was sent.');
+        setStep('failed');
+        return;
       }
       pollStatus(data.reference as string, 0);
     } catch (err) {

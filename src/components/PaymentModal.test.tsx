@@ -53,6 +53,23 @@ describe('PaymentModal', () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
+  it('does not confirm a booking when the payment is simulated', async () => {
+    const { onSuccess } = setup();
+    invokeMock.mockImplementationOnce(async () => ({
+      data: { reference: 'sim-ref', simulated: true, status: 'PENDING', message: 'Demo mode: no mobile-money prompt was sent.' },
+      error: null,
+    }));
+
+    fireEvent.click(screen.getByText('MTN Mobile Money'));
+    const input = await screen.findByPlaceholderText('6XX XXX XXX');
+    fireEvent.change(input, { target: { value: '690112233' } });
+    fireEvent.click(screen.getByRole('button', { name: /Pay/i }));
+
+    expect(await screen.findByText(/Demo mode/i)).toBeInTheDocument();
+    expect(screen.getByText(/Payment Not Completed/i)).toBeInTheDocument();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
   it('calls the Campay edge function for a valid phone number', async () => {
     setup();
     fireEvent.click(screen.getByText('Orange Money'));
