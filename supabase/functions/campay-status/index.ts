@@ -21,16 +21,32 @@ async function getToken(username: string, password: string): Promise<string> {
   if (!data.token) throw new Error('Campay did not return a token');
   return data.token as string;
 }
+function createMockStatusResponse(reference: string) {
+  return JSON.stringify({
+    reference,
+    status: 'SUCCESSFUL',
+    simulated: true,
+    message: 'Mock Campay status check succeeded',
+  });
+}
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const username = Deno.env.get('CAMPAY_USERNAME');
     const password = Deno.env.get('CAMPAY_PASSWORD');
-    if (!username || !password) {
-      return new Response(
-        JSON.stringify({ error: 'Campay credentials are not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+    const hasCredentials = Boolean(username?.trim() && password?.trim());
+    if (!hasCredentials) {
+      const parsed = BodySchema.safeParse(await req.json());
+      if (!parsed.success) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid request', details: parsed.error.flatten().fieldErrors }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      return new Response(createMockStatusResponse(parsed.data.reference), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
