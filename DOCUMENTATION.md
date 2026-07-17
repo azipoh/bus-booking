@@ -265,3 +265,4 @@ For deployment, ensure that:
 ## 13. Summary
 
 Moghamo is a full-featured travel and parcel platform with a polished public experience and a structured internal admin workflow. The codebase is organized around React pages, shared UI components, and Supabase-backed data services, making it suitable for both customer-facing use and operational management.
+ 
