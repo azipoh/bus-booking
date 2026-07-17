@@ -14,6 +14,7 @@ import { Package, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import PaymentModal from '@/components/PaymentModal';
+import { buildParcelEmailContent } from '@/lib/parcelEmail';
 
 const cities = ['Douala', 'Yaoundé', 'Bamenda', 'Buea', 'Limbe'];
 
@@ -90,6 +91,29 @@ const SendParcel = () => {
       });
 
       if (error) throw error;
+
+      const trackingUrl = `${window.location.origin}/track-parcel?code=${trackingCode}`;
+      const parcelEmail = buildParcelEmailContent({
+        recipientName: recipientName,
+        senderName,
+        trackingCode,
+        trackingUrl,
+        origin,
+        destination,
+      });
+
+      try {
+        await supabase.functions.invoke('send-parcel-email', {
+          body: {
+            to: recipientEmail,
+            subject: parcelEmail.subject,
+            text: parcelEmail.text,
+            html: parcelEmail.html,
+          },
+        });
+      } catch (emailErr) {
+        console.warn('Parcel email notification failed:', emailErr);
+      }
 
       toast.success(`Parcel registered! Tracking code: ${trackingCode}`, { duration: 12000 });
       navigate('/admin/parcels');
