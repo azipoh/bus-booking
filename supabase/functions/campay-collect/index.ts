@@ -49,19 +49,19 @@ async function getToken(username: string, password: string): Promise<string> {
   if (!data.token) throw new Error('Campay did not return a token');
   return data.token as string;
 }
-function createMockResponse(reference: string) {
-  return JSON.stringify({
-    reference,
-    status: 'SUCCESSFUL',
-    simulated: true,
-    message: 'Mock Campay payment completed',
-  });
-}
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: getCorsHeaders(req) });
   }
   try {
+    const username = Deno.env.get('CAMPAY_USERNAME');
+    const password = Deno.env.get('CAMPAY_PASSWORD');
+    if (!username || !password) {
+      return new Response(
+        JSON.stringify({ error: 'Campay credentials are not configured' }),
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+      );
+    }
     const text = await req.text();
     console.log('campay-collect request body:', text);
     let parsed;
@@ -80,18 +80,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       );
     }
-
     const { amount, phone, description, external_reference } = parsed.data;
-    const username = Deno.env.get('CAMPAY_USERNAME');
-    const password = Deno.env.get('CAMPAY_PASSWORD');
-    const hasCredentials = Boolean(username?.trim() && password?.trim());
-    if (!hasCredentials) {
-      const reference = (external_reference ?? '').trim() || generateExternalReference();
-      return new Response(createMockResponse(reference), {
-        status: 200,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-      });
-    }
     const token = await getToken(username, password);
     const normalizedPhone = normalizePhone(phone);
     let collectRes: Response | undefined;
