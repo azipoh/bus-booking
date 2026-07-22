@@ -64,7 +64,7 @@ const SeatSelection = () => {
         .from('bookings')
         .select('seat_numbers')
         .eq('schedule_id', scheduleId!)
-        .neq('status', 'cancelled');
+        .in('status', ['confirmed', 'completed']);
       return (data || []).flatMap((b) => b.seat_numbers || []);
     },
     enabled: !!scheduleId,
