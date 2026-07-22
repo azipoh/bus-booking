@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      branches: {
+        Row: {
+          id: string
+          name: string
+          location: string | null
+          city: string | null
+          address: string | null
+          phone: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          location?: string | null
+          city?: string | null
+          address?: string | null
+          phone?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          location?: string | null
+          city?: string | null
+          address?: string | null
+          phone?: string | null
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booked_at: string
@@ -70,6 +105,7 @@ export type Database = {
       buses: {
         Row: {
           amenities: string[] | null
+          branch_id: string | null
           bus_type: string
           created_at: string
           id: string
@@ -82,6 +118,7 @@ export type Database = {
         }
         Insert: {
           amenities?: string[] | null
+          branch_id?: string | null
           bus_type?: string
           created_at?: string
           id?: string
@@ -94,6 +131,7 @@ export type Database = {
         }
         Update: {
           amenities?: string[] | null
+          branch_id?: string | null
           bus_type?: string
           created_at?: string
           id?: string
@@ -143,6 +181,7 @@ export type Database = {
       }
       parcels: {
         Row: {
+          branch_id: string | null
           created_at: string
           description: string
           destination: string
@@ -163,6 +202,7 @@ export type Database = {
           weight_kg: number
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           description?: string
           destination: string
@@ -183,6 +223,7 @@ export type Database = {
           weight_kg?: number
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           description?: string
           destination?: string
@@ -215,6 +256,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          branch_id: string | null
           email: string
           full_name: string
           id: string
@@ -223,6 +265,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          branch_id?: string | null
           email?: string
           full_name?: string
           id: string
@@ -231,6 +274,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          branch_id?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -267,6 +311,7 @@ export type Database = {
         Row: {
           arrival_time: string
           available_seats: number
+          branch_id: string | null
           bus_id: string
           created_at: string
           departure_time: string
@@ -279,6 +324,7 @@ export type Database = {
         Insert: {
           arrival_time: string
           available_seats?: number
+          branch_id?: string | null
           bus_id: string
           created_at?: string
           departure_time: string
@@ -291,6 +337,7 @@ export type Database = {
         Update: {
           arrival_time?: string
           available_seats?: number
+          branch_id?: string | null
           bus_id?: string
           created_at?: string
           departure_time?: string
@@ -313,6 +360,13 @@ export type Database = {
             columns: ["route_id"]
             isOneToOne: false
             referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
         ]
@@ -355,16 +409,19 @@ export type Database = {
       user_roles: {
         Row: {
           id: string
+          branch_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           id?: string
+          branch_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           id?: string
+          branch_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
@@ -382,6 +439,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      current_user_branch_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string | null
+      }
       track_parcel: {
         Args: { _tracking_code: string }
         Returns: {
@@ -396,7 +457,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "manager" | "cashier"
     }
     CompositeTypes: {
       [_ in never]: never

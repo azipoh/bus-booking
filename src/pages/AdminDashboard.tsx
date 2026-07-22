@@ -59,7 +59,7 @@ const AdminDashboard = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*, schedules(*, buses(*), routes(*))')
+        .select('*, schedules(*, buses(*), routes(*), branches(name))')
         .order('booked_at', { ascending: false })
         .limit(5);
       if (error) throw error;
@@ -161,6 +161,9 @@ const AdminDashboard = () => {
                         <p className="font-medium text-foreground">{booking.passenger_name}</p>
                         <p className="text-xs text-muted-foreground">
                           {booking.schedules.routes.origin} → {booking.schedules.routes.destination} • {formatDate(booking.schedules.departure_time)}
+                        </p>
+                        <p className="text-xs font-medium text-accent">
+                          {(booking.schedules as any).branches?.name || 'Branch unavailable'}
                         </p>
                       </div>
                       <div className="text-right">

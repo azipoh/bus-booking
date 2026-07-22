@@ -25,7 +25,7 @@ type DbRoute = Tables<'routes'>;
 
 const AdminSchedules = () => {
   const qc = useQueryClient();
-  const { branchId } = useAuth();
+  const { isAdmin, isManager, branchId } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ScheduleWithDetails | null>(null);
 
@@ -41,12 +41,14 @@ const AdminSchedules = () => {
   const [uploading, setUploading] = useState(false);
 
   const { data: schedules = [], isLoading } = useQuery({
-    queryKey: ['admin-schedules'],
+    queryKey: ['admin-schedules', isAdmin ? 'all' : branchId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('schedules')
         .select('*, buses(*), routes(*)')
         .order('departure_time', { ascending: false });
+      if (!isAdmin && branchId) query = query.eq('branch_id', branchId);
+      const { data, error } = await query;
       if (error) throw error;
       return (data as unknown as ScheduleWithDetails[]) || [];
     },
@@ -55,7 +57,9 @@ const AdminSchedules = () => {
   const { data: buses = [] } = useQuery({
     queryKey: ['buses-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('buses').select('*').eq('is_active', true).order('name');
+      let query = supabase.from('buses').select('*').eq('is_active', true).order('name');
+      if (!isAdmin && branchId) query = query.eq('branch_id', branchId);
+      const { data } = await query;
       return (data as DbBus[]) || [];
     },
   });
@@ -140,6 +144,9 @@ const AdminSchedules = () => {
   const handleSave = () => {
     if (!formBusId || !formRouteId || !formDeparture || !formArrival) {
       toast.error('Fill all required fields'); return;
+    }
+    if (isManager && !branchId) {
+      toast.error('You are not assigned to a branch yet.'); return;
     }
     upsertMutation.mutate({
       bus_id: formBusId,
