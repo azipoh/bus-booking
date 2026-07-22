@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UserPlus, Loader2, Users, Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -75,8 +75,11 @@ const AdminUsers = () => {
 
   const create = useMutation({
     mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authHeader = session?.access_token ? `Bearer ${session.access_token}` : undefined;
       const { data, error } = await supabase.functions.invoke('admin-create-user', {
         body: { email, password, full_name: fullName, phone, role, branch_id: branchId },
+        headers: authHeader ? { Authorization: authHeader } : undefined,
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -185,6 +188,9 @@ const AdminUsers = () => {
             <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-heading">Create Branch Staff</DialogTitle>
+                <DialogDescription>
+                  Create a new staff account for a branch and assign their role immediately.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
@@ -281,6 +287,9 @@ const AdminUsers = () => {
           <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-heading">Edit Staff</DialogTitle>
+              <DialogDescription>
+                Update the staff member’s branch assignment or role.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div>
