@@ -24,14 +24,6 @@ async function getToken(username: string, password: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    const username = Deno.env.get('CAMPAY_USERNAME');
-    const password = Deno.env.get('CAMPAY_PASSWORD');
-    if (!username || !password) {
-      return new Response(
-        JSON.stringify({ error: 'Campay credentials are not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
       return new Response(
@@ -40,6 +32,28 @@ Deno.serve(async (req) => {
       );
     }
     const { reference } = parsed.data;
+    const username = Deno.env.get('CAMPAY_USERNAME');
+    const password = Deno.env.get('CAMPAY_PASSWORD');
+
+    if (CAMPAY_ENV === 'demo' && (!username || !password)) {
+      return new Response(
+        JSON.stringify({
+          reference,
+          simulated: true,
+          status: 'PENDING',
+          message: 'Demo mode: no mobile-money prompt was sent. Campay demo accounts support up to 25 XAF and free trial numbers only.',
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (!username || !password) {
+      return new Response(
+        JSON.stringify({ error: 'Campay credentials are not configured. Add CAMPAY_USERNAME and CAMPAY_PASSWORD to the Supabase Edge Function secrets before enabling live payments.' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     const token = await getToken(username, password);
     const statusRes = await fetch(`${BASE_URL}/api/transaction/${encodeURIComponent(reference)}/`, {
       method: 'GET',

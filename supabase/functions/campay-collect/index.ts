@@ -15,11 +15,22 @@ function getCorsHeaders(req: Request) {
 
 // Campay environment
 const CAMPAY_ENV = (Deno.env.get("CAMPAY_ENV") ?? "live").toLowerCase();
+const DEMO_MAX_AMOUNT = Number(Deno.env.get("CAMPAY_DEMO_MAX_AMOUNT") ?? "25");
 
 const BASE_URL =
   CAMPAY_ENV === "demo"
     ? "https://demo.campay.net"
     : "https://www.campay.net";
+
+function buildDemoResponse(reference: string) {
+  return {
+    reference,
+    simulated: true,
+    status: "PENDING",
+    message:
+      `Demo mode: no mobile-money prompt was sent. Campay demo accounts support up to ${DEMO_MAX_AMOUNT} XAF and free trial numbers only.`,
+  };
+}
 
 // Normalize Cameroon phone numbers
 function normalizePhone(value: string) {
@@ -39,7 +50,7 @@ function generateExternalReference() {
 }
 
 const BodySchema = z.object({
-  amount: z.number().positive().max(1_000_000),
+  amount: z.coerce.number().positive().max(1_000_000),
 
   phone: z
     .string()
@@ -96,32 +107,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const username = Deno.env.get("CAMPAY_USERNAME");
-    const password = Deno.env.get("CAMPAY_PASSWORD");
-
-    if (!username || !password) {
-      return new Response(
-        JSON.stringify({
-          error: "Campay credentials are not configured.",
-        }),
-        {
-          status: 500,
-          headers: {
-            ...getCorsHeaders(req),
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    const text = await req.text();
-
-    console.log("Request body:", text);
-
-    let parsed;
+    let body: unknown;
 
     try {
-      parsed = BodySchema.safeParse(JSON.parse(text));
+      body = await req.json();
     } catch {
       return new Response(
         JSON.stringify({
@@ -136,6 +125,10 @@ Deno.serve(async (req) => {
         }
       );
     }
+
+    console.log("Request body:", JSON.stringify(body));
+
+    const parsed = BodySchema.safeParse(body);
 
     if (!parsed.success) {
       return new Response(
@@ -159,6 +152,53 @@ Deno.serve(async (req) => {
       description,
       external_reference,
     } = parsed.data;
+
+    const username = Deno.env.get("CAMPAY_USERNAME");
+    const password = Deno.env.get("CAMPAY_PASSWORD");
+
+    if (CAMPAY_ENV === "demo") {
+      if (amount > DEMO_MAX_AMOUNT) {
+        return new Response(
+          JSON.stringify(buildDemoResponse(generateExternalReference())),
+          {
+            status: 200,
+            headers: {
+              ...getCorsHeaders(req),
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      if (!username || !password) {
+        return new Response(
+          JSON.stringify(buildDemoResponse(generateExternalReference())),
+          {
+            status: 200,
+            headers: {
+              ...getCorsHeaders(req),
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+    }
+
+    if (!username || !password) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Campay credentials are not configured. Add CAMPAY_USERNAME and CAMPAY_PASSWORD to the Supabase Edge Function secrets before enabling live payments.",
+        }),
+        {
+          status: 503,
+          headers: {
+            ...getCorsHeaders(req),
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     const token = await getToken(username, password);
 

@@ -71,6 +71,7 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       const status = String(data?.status ?? '').toUpperCase();
       const simulated = Boolean(data?.simulated);
       const message = typeof data?.message === 'string' ? data.message : '';
+      const demoMessage = 'Demo mode: no mobile-money prompt was sent. Campay demo accounts are limited to 25 XAF and use a free trial number.';
 
       if (status === 'SUCCESSFUL' && !simulated) {
         setStep('success');
@@ -78,7 +79,7 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
         return;
       }
       if (status === 'SUCCESSFUL' && simulated) {
-        setErrorMsg(message || 'This payment was simulated and no mobile money prompt was sent.');
+        setErrorMsg(message || demoMessage);
         setStep('failed');
         return;
       }
@@ -88,7 +89,7 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
         return;
       }
       if (status === 'PENDING') {
-        setErrorMsg(message || 'Your mobile money payment is still pending. Please approve the prompt or try again.');
+        setErrorMsg(message || (simulated ? demoMessage : 'Your mobile money payment is still pending. Please approve the prompt or try again.'));
         setStep('failed');
         return;
       }
@@ -129,8 +130,9 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       }
       const simulated = Boolean(data?.simulated);
       const message = typeof data?.message === 'string' ? data.message : '';
+      const demoMessage = 'Demo mode: no mobile-money prompt was sent. Campay demo accounts are limited to 25 XAF and use a free trial number.';
       if (simulated) {
-        setErrorMsg(message || 'This payment was simulated and no mobile money prompt was sent.');
+        setErrorMsg(message || demoMessage);
         setStep('failed');
         return;
       }
