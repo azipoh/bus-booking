@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import PaymentModal from './PaymentModal';
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -27,6 +27,7 @@ const setup = () => {
 };
 
 beforeEach(() => {
+  vi.useRealTimers();
   invokeMock.mockReset();
   invokeMock.mockImplementation(async (name: string) => {
     if (name === 'campay-collect') {
@@ -34,6 +35,10 @@ beforeEach(() => {
     }
     return { data: { status: 'SUCCESSFUL' }, error: null };
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('PaymentModal', () => {
@@ -53,21 +58,39 @@ describe('PaymentModal', () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it('does not confirm a booking when the payment is simulated', async () => {
+  it('confirms the booking when the demo status poll reports a successful payment', async () => {
+    vi.useFakeTimers();
     const { onSuccess } = setup();
-    invokeMock.mockImplementationOnce(async () => ({
-      data: { reference: 'sim-ref', simulated: true, status: 'PENDING', message: 'Demo mode: no mobile-money prompt was sent.' },
-      error: null,
-    }));
+    invokeMock.mockImplementation(async (name: string) => {
+      if (name === 'campay-collect') {
+        return {
+          data: { reference: 'demo-ref', simulated: true, status: 'PENDING', message: 'Demo mode: no mobile-money prompt was sent.' },
+          error: null,
+        };
+      }
+
+      return {
+        data: { reference: 'demo-ref', simulated: true, status: 'SUCCESSFUL', message: 'Demo mode payment approved.' },
+        error: null,
+      };
+    });
 
     fireEvent.click(screen.getByText('MTN Mobile Money'));
     const input = await screen.findByPlaceholderText('6XX XXX XXX');
     fireEvent.change(input, { target: { value: '690112233' } });
     fireEvent.click(screen.getByRole('button', { name: /Pay/i }));
 
-    expect(await screen.findByText(/Demo mode/i)).toBeInTheDocument();
-    expect(screen.getByText(/Payment Not Completed/i)).toBeInTheDocument();
-    expect(onSuccess).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByText(/Payment Successful!/i)).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1600);
+    });
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('calls the Campay edge function for a valid phone number', async () => {

@@ -186,3 +186,21 @@
     box-shadow: var(--shadow-accent);
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .ticket-print-area {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid;
+  }
+
+  a,
+  button,
+  .no-print {
+    display: none !important;
+  }
+}

@@ -73,24 +73,31 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       const message = typeof data?.message === 'string' ? data.message : '';
       const demoMessage = 'Demo mode: no mobile-money prompt was sent. Campay demo accounts are limited to 25 XAF and use a free trial number.';
 
-      if (status === 'SUCCESSFUL' && !simulated) {
+      if (status === 'SUCCESSFUL') {
         setStep('success');
-        setTimeout(() => { if (!cancelled.current) { reset(); onSuccess(); } }, 1500);
+        setTimeout(() => {
+          if (!cancelled.current) {
+            reset();
+            onClose();
+            onSuccess();
+          }
+        }, 1500);
         return;
       }
-      if (status === 'SUCCESSFUL' && simulated) {
-        setErrorMsg(message || demoMessage);
-        setStep('failed');
-        return;
-      }
+
       if (status === 'FAILED') {
         setErrorMsg('Payment was declined or cancelled. Please try again.');
         setStep('failed');
         return;
       }
+
       if (status === 'PENDING') {
-        setErrorMsg(message || (simulated ? demoMessage : 'Your mobile money payment is still pending. Please approve the prompt or try again.'));
-        setStep('failed');
+        if (attempt >= MAX_POLLS) {
+          setErrorMsg(message || (simulated ? demoMessage : 'Payment timed out. If you were charged, contact support.'));
+          setStep('failed');
+          return;
+        }
+        pollTimer.current = setTimeout(() => pollStatus(reference, attempt + 1), POLL_INTERVAL_MS);
         return;
       }
     } catch (_err) {
@@ -131,11 +138,11 @@ const PaymentModal = ({ open, onClose, onSuccess, amount, description }: Payment
       const simulated = Boolean(data?.simulated);
       const message = typeof data?.message === 'string' ? data.message : '';
       const demoMessage = 'Demo mode: no mobile-money prompt was sent. Campay demo accounts are limited to 25 XAF and use a free trial number.';
-      if (simulated) {
-        setErrorMsg(message || demoMessage);
-        setStep('failed');
-        return;
+
+      if (simulated && message) {
+        setErrorMsg(message);
       }
+
       pollStatus(data.reference as string, 0);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Could not start the payment. Please try again.');

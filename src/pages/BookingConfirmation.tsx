@@ -3,7 +3,7 @@
  * Shows PNR, trip details, download ticket, and no-refund policy.
  */
 import { useLocation, Link, Navigate } from 'react-router-dom';
-import { CheckCircle2, Download, Bus, Calendar, MapPin, Clock, AlertTriangle, Gift } from 'lucide-react';
+import { CheckCircle2, Download, Bus, Calendar, MapPin, Clock, AlertTriangle, Gift, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
 import { motion } from 'framer-motion';
@@ -75,6 +75,10 @@ const BookingConfirmation = () => {
 
   const pointsEarned = Math.floor(booking.totalFare / 100);
 
+  const handlePrintTicket = () => {
+    window.print();
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <motion.div
@@ -111,7 +115,7 @@ const BookingConfirmation = () => {
         )}
 
         {/* Ticket card */}
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-elevated">
+        <div className="ticket-print-area overflow-hidden rounded-2xl border border-border bg-card shadow-elevated">
           {/* Header strip */}
           <div className="gradient-hero px-6 py-4">
             <div className="flex items-center justify-between">
@@ -189,6 +193,9 @@ const BookingConfirmation = () => {
 
           {/* Actions */}
           <div className="flex gap-3 border-t border-border px-6 py-4">
+            <Button variant="outline" className="flex-1 gap-2" onClick={handlePrintTicket}>
+              <Printer className="h-4 w-4" /> Print Ticket
+            </Button>
             <Button variant="outline" className="flex-1 gap-2" onClick={() => generateTicketPDF(booking)}>
               <Download className="h-4 w-4" /> Download Ticket
             </Button>
