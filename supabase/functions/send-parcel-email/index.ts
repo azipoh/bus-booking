@@ -11,7 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const { to, subject, text, html } = await req.json();
+    const payload = await req.json();
+    const { to, subject, text, html } = payload;
 
     if (!to || !subject || (!text && !html)) {
       return new Response(JSON.stringify({ error: 'Missing required email fields' }), {
@@ -20,37 +21,35 @@ serve(async (req) => {
       });
     }
 
-    const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
-    if (!BREVO_API_KEY) {
-      console.warn('BREVO_API_KEY is not configured. Simulating parcel email delivery.');
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'Moghamo Express <noreply@moghamo.cm>';
+
+    if (!RESEND_API_KEY) {
+      console.warn('RESEND_API_KEY is not configured. Simulating parcel email delivery.');
       return new Response(JSON.stringify({ success: true, simulated: true }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
-        'api-key': BREVO_API_KEY,
       },
       body: JSON.stringify({
-        sender: {
-          name: 'Moghamo Express',
-          email: 'azipohfaithful@gmail.com',
-        },
-        to: [{ email: to }],
+        from: RESEND_FROM_EMAIL,
+        to: Array.isArray(to) ? to : [to],
         subject,
-        textContent: text,
-        htmlContent: html,
+        text,
+        html,
       }),
     });
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(`Brevo API error [${response.status}]: ${JSON.stringify(data)}`);
+      throw new Error(`Resend API error [${response.status}]: ${JSON.stringify(data)}`);
     }
 
     return new Response(JSON.stringify({ success: true, data }), {

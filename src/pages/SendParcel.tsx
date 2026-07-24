@@ -19,11 +19,8 @@ import { buildParcelEmailContent } from '@/lib/parcelEmail';
 const cities = ['Douala', 'Yaoundé', 'Bamenda', 'Buea', 'Limbe'];
 
 const calculateFare = (weight: number): number => {
-  if (weight <= 1) return 1000;
-  if (weight <= 5) return 2500;
-  if (weight <= 10) return 4000;
-  if (weight <= 20) return 6000;
-  return 8000 + (weight - 20) * 300;
+  if (weight <= 0) return 0;
+  return Math.round(weight * 1);
 };
 
 const SendParcel = () => {
@@ -185,10 +182,14 @@ const SendParcel = () => {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <Input type="number" step="0.1" min="0.1" placeholder="Weight (kg) *" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-background" />
                 <div className="flex items-center rounded-lg bg-muted px-4">
-                  <span className="text-sm text-muted-foreground">Fare:</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Pricing</span>
+                    <span className="text-sm font-medium text-foreground">1 FCFA per kg</span>
+                  </div>
                   <span className="ml-auto font-heading font-bold text-accent">{formatCurrency(fare)}</span>
                 </div>
               </div>
+              <p className="mt-3 text-sm text-muted-foreground">Fare is calculated as <span className="font-semibold text-foreground">weight (kg) × 1 FCFA</span>.</p>
               <Textarea placeholder="Parcel description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-3 bg-background" />
             </div>
 
