@@ -15,19 +15,22 @@ const ResetPassword = () => {
   const [valid, setValid] = useState(false);
 
   useEffect(() => {
-    // Check if we have the recovery token in the URL hash
     const hash = window.location.hash;
-    if (hash.includes('type=recovery')) {
+    const search = window.location.search;
+    const hasRecoveryToken = hash.includes('type=recovery') || hash.includes('access_token') || search.includes('type=recovery') || search.includes('access_token');
+
+    if (hasRecoveryToken) {
       setValid(true);
-    } else {
-      // Also listen for auth state change for recovery
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setValid(true);
-        }
-      });
-      return () => subscription.unsubscribe();
+      return;
     }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setValid(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,8 +49,8 @@ const ResetPassword = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Password updated successfully!');
-      navigate('/');
+      toast.success('Password updated successfully! Please sign in with your new password.');
+      navigate('/login');
     }
   };
 
@@ -71,8 +74,8 @@ const ResetPassword = () => {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Bus className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Set New Password</h1>
-          <p className="mt-1 text-sm text-foreground/80">Enter your new password below</p>
+          <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">Create New Password</h1>
+          <p className="mt-1 text-sm text-foreground/80">Choose a fresh password to continue</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elevated">

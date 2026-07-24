@@ -114,7 +114,7 @@ const AdminParcels = () => {
                     <TableHead>Recipient</TableHead>
                     <TableHead>Route</TableHead>
                     <TableHead>Weight</TableHead>
-                    <TableHead>Fare</TableHead>
+                    <TableHead>Amount Collected</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Action</TableHead>
                   </TableRow>
@@ -144,7 +144,12 @@ const AdminParcels = () => {
                         </TableCell>
                         <TableCell>{p.origin} → {p.destination}</TableCell>
                         <TableCell>{p.weight_kg} kg</TableCell>
-                        <TableCell className="font-heading font-bold">{formatCurrency(Number(p.fare))}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-heading font-bold">{formatCurrency(Number(p.fare))}</span>
+                            <span className="text-xs text-muted-foreground">Cash collected</span>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge className={`capitalize ${statusColors[p.status] || ''}`}>
                             {p.status.replace('_', ' ')}

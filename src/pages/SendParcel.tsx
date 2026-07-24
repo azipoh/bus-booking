@@ -13,21 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Package, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import PaymentModal from '@/components/PaymentModal';
 import { buildParcelEmailContent } from '@/lib/parcelEmail';
 
 const cities = ['Douala', 'Yaoundé', 'Bamenda', 'Buea', 'Limbe'];
-
-const calculateFare = (weight: number): number => {
-  if (weight <= 0) return 0;
-  return Math.round(weight * 1);
-};
 
 const SendParcel = () => {
   const { user, branchId, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
 
   const [senderName, setSenderName] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
@@ -39,16 +32,17 @@ const SendParcel = () => {
   const [destination, setDestination] = useState('');
   const [description, setDescription] = useState('');
   const [weight, setWeight] = useState('');
+  const [manualFare, setManualFare] = useState('');
 
   if (authLoading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
   if (!user) return <Navigate to="/login" />;
 
-  const fare = calculateFare(parseFloat(weight) || 0);
+  const fare = Number(manualFare) || 0;
 
   const handleInitiatePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!senderName || !senderPhone || !senderEmail || !recipientName || !recipientPhone || !recipientEmail || !origin || !destination || !weight) {
-      toast.error('Please fill in all required fields, including sender and recipient emails.');
+    if (!senderName || !senderPhone || !senderEmail || !recipientName || !recipientPhone || !recipientEmail || !origin || !destination || !weight || !manualFare) {
+      toast.error('Please fill in all required fields, including sender and recipient emails, weight, and collected amount.');
       return;
     }
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -60,11 +54,15 @@ const SendParcel = () => {
       toast.error('Origin and destination must be different.');
       return;
     }
-    setShowPayment(true);
+    if (Number(manualFare) <= 0) {
+      toast.error('Please enter a valid amount to collect for the parcel.');
+      return;
+    }
+
+    void registerParcel();
   };
 
   const registerParcel = async () => {
-    setShowPayment(false);
     setIsSubmitting(true);
     try {
       const trackingCode = `PCL${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -181,15 +179,23 @@ const SendParcel = () => {
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <Input type="number" step="0.1" min="0.1" placeholder="Weight (kg) *" value={weight} onChange={(e) => setWeight(e.target.value)} className="bg-background" />
-                <div className="flex items-center rounded-lg bg-muted px-4">
-                  <div className="flex flex-col">
-                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Pricing</span>
-                    <span className="text-sm font-medium text-foreground">1 FCFA per kg</span>
-                  </div>
-                  <span className="ml-auto font-heading font-bold text-accent">{formatCurrency(fare)}</span>
-                </div>
+                <Input
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="Amount to collect (FCFA) *"
+                  value={manualFare}
+                  onChange={(e) => setManualFare(e.target.value)}
+                  className="bg-background"
+                />
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Fare is calculated as <span className="font-semibold text-foreground">weight (kg) × 1 FCFA</span>.</p>
+              <div className="mt-3 flex items-center rounded-lg bg-muted px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">Collected amount</span>
+                  <span className="text-sm font-medium text-foreground">Enter the price the customer will pay physically</span>
+                </div>
+                <span className="ml-auto font-heading font-bold text-accent">{formatCurrency(fare)}</span>
+              </div>
               <Textarea placeholder="Parcel description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-3 bg-background" />
             </div>
 
@@ -202,14 +208,6 @@ const SendParcel = () => {
               Register Parcel — {formatCurrency(fare)}
             </Button>
           </form>
-
-          <PaymentModal
-            open={showPayment}
-            onClose={() => setShowPayment(false)}
-            onSuccess={registerParcel}
-            amount={fare}
-            description={`Parcel ${origin} to ${destination}`}
-          />
         </motion.div>
       </div>
     </div>
