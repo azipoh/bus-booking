@@ -47,7 +47,7 @@ const Navbar = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <img src="/favicon.svg" alt="Moghamo logo" className="h-5 w-5 object-contain" />
+            <img src="/favicon.png" alt="Moghamo logo" className="h-5 w-5 object-contain" />
           </div>
           <span className="font-heading text-xl font-bold text-foreground">Moghamo</span>
         </Link>

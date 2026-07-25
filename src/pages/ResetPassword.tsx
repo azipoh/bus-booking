@@ -49,6 +49,7 @@ const ResetPassword = () => {
     if (error) {
       toast.error(error.message);
     } else {
+      await supabase.auth.signOut();
       toast.success('Password updated successfully! Please sign in with your new password.');
       navigate('/login');
     }

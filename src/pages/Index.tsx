@@ -31,7 +31,7 @@ const popularRoutes = [
 
 const destinations = [
   { name: 'Yaoundé', tagline: 'The capital on seven hills', image: destYaounde },
-  { name: 'Buea', tagline: 'Gateway to Mount Cameroon', image: destBuea },
+  { name: 'Douala', tagline: 'Cameroon’s commercial heartbeat', image: destBuea },
   { name: 'Limbe', tagline: 'Black sand beaches & ocean views', image: destLimbe },
   { name: 'Bamenda', tagline: 'Scenic highlands & grassfields', image: destBamenda },
 ];
