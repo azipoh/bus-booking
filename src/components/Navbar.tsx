@@ -3,7 +3,7 @@
  * Shows auth state and role-based navigation.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
+import { Bus, User, Ticket, Menu, X, LogOut, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
