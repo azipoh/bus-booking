@@ -29,6 +29,7 @@ const AdminParcels = lazy(() => import("./pages/AdminParcels"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminBranches = lazy(() => import("./pages/AdminBranches"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminAgencies = lazy(() => import("./pages/AdminAgencies"));
 const BranchReport = lazy(() => import("./pages/BranchReport"));
 const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -77,6 +78,7 @@ const App = () => (
                 <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/branch-report" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><BranchReport /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/buses" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><AdminBuses /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/agencies" element={<ProtectedRoute requireAdmin><AdminLayout><AdminAgencies /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBookings /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/schedules" element={<ProtectedRoute allowedRoles={["manager"]}><AdminLayout><AdminSchedules /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/parcels" element={<ProtectedRoute allowedRoles={["manager", "cashier"]}><AdminLayout><AdminParcels /></AdminLayout></ProtectedRoute>} />

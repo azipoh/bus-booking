@@ -65,6 +65,15 @@ export interface Booking {
   pnr: string;
 }
 
+export interface Agency {
+  id: string;
+  name: string;
+  code: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  active: boolean;
+}
+
 // Popular cities for search
 export const cities = [
   'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
@@ -187,4 +196,12 @@ export const dailyBookingsData = [
   { date: 'Feb 17', bookings: 41, revenue: 2050 },
   { date: 'Feb 18', bookings: 36, revenue: 1800 },
   { date: 'Feb 19', bookings: 38, revenue: 1900 },
+];
+
+// Mock agencies (operators) — in production these come from DB
+export const agencies: Agency[] = [
+  { id: 'a1', name: 'Moghamo Transport', code: 'MOG', contactEmail: 'ops@moghamo.com', contactPhone: '+10000000001', active: true },
+  { id: 'a2', name: 'BlueLine Travels', code: 'BLU', contactEmail: 'info@blueline.com', contactPhone: '+10000000002', active: true },
+  { id: 'a3', name: 'Greenway Lines', code: 'GRN', contactEmail: 'contact@greenway.com', contactPhone: '+10000000003', active: true },
+  { id: 'a4', name: 'EconoTravel', code: 'ECO', contactEmail: 'hello@econotravel.com', contactPhone: '+10000000004', active: false },
 ];

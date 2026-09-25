@@ -32,6 +32,7 @@ const AdminSidebar = () => {
     links.push(
       { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
       { to: '/admin/branches', label: 'Branches', icon: Building2 },
+      { to: '/admin/agencies', label: 'Agencies', icon: Package },
       { to: '/admin/users', label: 'Staff & Users', icon: Users },
       { to: '/admin/buses', label: 'Buses', icon: Bus },
       { to: '/admin/schedules', label: 'Schedules', icon: Calendar },

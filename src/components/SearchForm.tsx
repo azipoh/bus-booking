@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowRightLeft, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { agencies as mockAgencies, Agency } from '@/data/mockData';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -28,6 +29,8 @@ const SearchForm = () => {
   const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
   const [showDestSuggestions, setShowDestSuggestions] = useState(false);
   const [cities, setCities] = useState<string[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>(mockAgencies);
+  const [agencyId, setAgencyId] = useState<string>('');
 
   // Fetch distinct cities from routes table
   useEffect(() => {
@@ -64,7 +67,9 @@ const SearchForm = () => {
       toast.error(result.error.issues[0]?.message ?? 'Please check your search details');
       return;
     }
-    navigate(`/search?from=${encodeURIComponent(source)}&to=${encodeURIComponent(destination)}&date=${date}`);
+    const params = new URLSearchParams({ from: source, to: destination, date });
+    if (agencyId) params.set('agency', agencyId);
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
@@ -137,6 +142,21 @@ const SearchForm = () => {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Agency */}
+        <div className="flex-1 max-w-sm">
+          <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">Operator</label>
+          <select
+            value={agencyId}
+            onChange={(e) => setAgencyId(e.target.value)}
+            className="h-12 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">All operators</option>
+            {agencies.map((a) => (
+              <option key={a.id} value={a.id}>{a.name} ({a.code})</option>
+            ))}
+          </select>
         </div>
 
         {/* Date */}
